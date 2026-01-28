@@ -1,0 +1,7 @@
+categories:
+  - name: test-category
+    roles:
+      - Python Developer
+filters:
+  location: "USA"
+  date_posted: "past_week"

@@ -1,0 +1,9 @@
+playwright
+pandas
+openpyxl
+pyyaml
+loguru
+beautifulsoup4
+playwright-stealth
+pymongo
+python-dotenv

@@ -1,0 +1,14 @@
+browser:
+  headless: false
+  width: 1920
+  height: 1080
+  timeout: 30000
+
+scraper:
+  min_delay: 2
+  max_delay: 5
+  retries: 3
+  
+paths:
+  data_dir: "data"
+  logs_dir: "logs"
