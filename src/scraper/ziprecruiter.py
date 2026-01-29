@@ -12,6 +12,8 @@ class ZipRecruiterScraper(BaseScraper):
         # ZipRecruiter Search URL with pagination
         days = kwargs.get("days_old", 30)
         max_pages = kwargs.get("max_pages", 10)
+        mongo_writer = kwargs.get("mongo_writer")
+        category = kwargs.get("category", "")
         
         base_url = f"https://www.ziprecruiter.com/candidate/search?search={role.replace(' ', '+')}&location=United+States&days={days}"
         
@@ -45,14 +47,28 @@ class ZipRecruiterScraper(BaseScraper):
 
             await human_delay(3.0, 5.0)
             
-            jobs = await self._scrape_current_page(current_page)
-            all_jobs.extend(jobs)
-            
-            if not jobs:
-                logger.info("No jobs found on this page, stopping.")
+            try:
+                jobs = await self._scrape_current_page(current_page)
+                
+                # Enrich with category and save IMMEDIATELY (like SimplyHired/Adzuna)
+                if jobs:
+                    for job in jobs:
+                        job["category"] = category
+                    
+                    # Save to MongoDB after each page
+                    if mongo_writer:
+                        mongo_writer.upsert_jobs(jobs)
+                        logger.success(f"Saved {len(jobs)} jobs from page {current_page} to MongoDB")
+                    
+                    all_jobs.extend(jobs)
+                    logger.info(f"Extracted {len(jobs)} jobs from ZipRecruiter page {current_page}")
+                else:
+                    logger.info("No jobs found on this page, stopping.")
+                    break
+                    
+            except Exception as e:
+                logger.error(f"Error scraping page {current_page}: {e}")
                 break
-            
-            logger.info(f"Extracted {len(jobs)} jobs from ZipRecruiter page {current_page}")
             
             current_page += 1
             await human_delay(2.0, 4.0)
@@ -62,6 +78,7 @@ class ZipRecruiterScraper(BaseScraper):
 
     async def _scrape_current_page(self, page_num: int) -> List[Dict]:
         jobs = []
+        seen_urls = set()  # Deduplicate within this page
         try:
             # Full page scroll - 10 steps
             await scroll_page(self.page, steps=10)
@@ -105,6 +122,11 @@ class ZipRecruiterScraper(BaseScraper):
                         full_link = link
                     
                     if title and full_link:
+                        # Skip duplicates within this page
+                        if full_link in seen_urls:
+                            continue
+                        seen_urls.add(full_link)
+                        
                         jobs.append({
                             "title": title.strip(),
                             "company": company.strip() if company else "Unknown",
