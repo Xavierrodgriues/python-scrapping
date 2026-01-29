@@ -47,7 +47,8 @@ class MongoWriter:
         if len(valid_jobs) < len(jobs):
             logger.warning(f"Filtered out {len(jobs) - len(valid_jobs)} jobs with missing URLs")
         
-        count = 0
+        new_count = 0
+        updated_count = 0
         for job in valid_jobs:
             try:
                 # Upsert based on URL
@@ -55,12 +56,16 @@ class MongoWriter:
                 update_query = {"$set": job}
                 
                 result = self.collection.update_one(filter_query, update_query, upsert=True)
-                if result.upserted_id or result.modified_count > 0:
-                    count += 1
+                if result.upserted_id:
+                    new_count += 1  # Truly new document
+                elif result.modified_count > 0:
+                    updated_count += 1  # Existing doc was updated
+                # If neither, doc exists with same data (matched but not modified)
             except Exception as e:
                 logger.error(f"Failed to upsert job {job.get('title')}: {e}")
                 
-        if count > 0:
-            logger.success(f"Upserted {count} jobs to MongoDB.")
+        total = new_count + updated_count
+        if total > 0:
+            logger.success(f"Upserted {total} jobs to MongoDB ({new_count} new, {updated_count} updated).")
         else:
-            logger.info("No new or updated jobs for MongoDB.")
+            logger.info(f"All {len(valid_jobs)} jobs already exist in MongoDB (no changes).")

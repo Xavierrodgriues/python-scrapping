@@ -18,15 +18,19 @@ async def run_scraper(scraper, variation, location, mongo_writer, all_jobs, cat_
     scraper_name = scraper.__class__.__name__
     logger.info(f"Starting {scraper_name} for {variation}...")
     try:
-        # Pass explicit date filter if supported by scraper impl
-        jobs = await scraper.search_jobs(variation, location, days_old=30, max_pages=10)
+        # Pass mongo_writer and category so scraper can save incrementally
+        jobs = await scraper.search_jobs(
+            variation, location, 
+            days_old=30, 
+            max_pages=10,
+            mongo_writer=mongo_writer,
+            category=cat_name
+        )
         
-        # Enrich with category
-        for job in jobs:
-            job["category"] = cat_name
-            
-        # Save incrementally to MongoDB
+        # Also save at the end in case scraper doesn't do incremental saves
         if jobs:
+            for job in jobs:
+                job["category"] = cat_name
             mongo_writer.upsert_jobs(jobs)
         
         all_jobs.extend(jobs)
