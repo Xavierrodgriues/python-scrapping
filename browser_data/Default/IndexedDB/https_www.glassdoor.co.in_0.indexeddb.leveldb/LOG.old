@@ -1,6 +1,3 @@
-2026/01/29-04:02:03.973 47b4 Reusing MANIFEST C:\Users\Welcome\Desktop\python-scraper\browser_data\Default\IndexedDB\https_www.glassdoor.co.in_0.indexeddb.leveldb/MANIFEST-000001
-2026/01/29-04:02:03.973 47b4 Recovering log #3
-2026/01/29-04:02:03.975 47b4 Reusing old log C:\Users\Welcome\Desktop\python-scraper\browser_data\Default\IndexedDB\https_www.glassdoor.co.in_0.indexeddb.leveldb/000003.log 
-2026/01/29-04:55:13.666 3db8 Level-0 table #5: started
-2026/01/29-04:55:13.703 3db8 Level-0 table #5: 705214 bytes OK
-2026/01/29-04:55:13.707 3db8 Delete type=0 #3
+2026/01/29-20:05:11.189 2d34 Reusing MANIFEST C:\Users\Welcome\Desktop\python-scraper\browser_data\Default\IndexedDB\https_www.glassdoor.co.in_0.indexeddb.leveldb/MANIFEST-000001
+2026/01/29-20:05:11.189 2d34 Recovering log #4
+2026/01/29-20:05:11.195 2d34 Reusing old log C:\Users\Welcome\Desktop\python-scraper\browser_data\Default\IndexedDB\https_www.glassdoor.co.in_0.indexeddb.leveldb/000004.log 

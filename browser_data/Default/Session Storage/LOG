@@ -1,3 +1,6 @@
-2026/01/29-20:32:04.066 288c Reusing MANIFEST C:\Users\Welcome\Desktop\python-scraper\browser_data\Default\Session Storage/MANIFEST-000001
-2026/01/29-20:32:04.068 288c Recovering log #53
-2026/01/29-20:32:04.072 288c Reusing old log C:\Users\Welcome\Desktop\python-scraper\browser_data\Default\Session Storage/000053.log 
+2026/01/29-22:03:51.798 1edc Reusing MANIFEST C:\Users\Welcome\Desktop\python-scraper\browser_data\Default\Session Storage/MANIFEST-000001
+2026/01/29-22:03:51.799 1edc Recovering log #60
+2026/01/29-22:03:51.803 1edc Reusing old log C:\Users\Welcome\Desktop\python-scraper\browser_data\Default\Session Storage/000060.log 
+2026/01/29-22:04:54.279 1edc Level-0 table #64: started
+2026/01/29-22:04:54.294 1edc Level-0 table #64: 11709 bytes OK
+2026/01/29-22:04:54.299 1edc Delete type=0 #60
