@@ -1,3 +1,37 @@
-2026/01/29-22:16:07.602 24c4 Reusing MANIFEST C:\Users\Welcome\Desktop\python-scraper\browser_data\Default\IndexedDB\https_www.glassdoor.co.in_0.indexeddb.leveldb/MANIFEST-000001
-2026/01/29-22:16:07.603 24c4 Recovering log #4
-2026/01/29-22:16:07.635 24c4 Reusing old log C:\Users\Welcome\Desktop\python-scraper\browser_data\Default\IndexedDB\https_www.glassdoor.co.in_0.indexeddb.leveldb/000004.log 
+2026/01/29-22:19:56.628 4674 Reusing MANIFEST C:\Users\Welcome\Desktop\python-scraper\browser_data\Default\IndexedDB\https_www.glassdoor.co.in_0.indexeddb.leveldb/MANIFEST-000001
+2026/01/29-22:19:56.629 4674 Recovering log #4
+2026/01/29-22:19:56.688 4674 Reusing old log C:\Users\Welcome\Desktop\python-scraper\browser_data\Default\IndexedDB\https_www.glassdoor.co.in_0.indexeddb.leveldb/000004.log 
+2026/01/29-22:19:56.896 4674 Level-0 table #8: started
+2026/01/29-22:19:56.927 4674 Level-0 table #8: 728542 bytes OK
+2026/01/29-22:19:56.932 4674 Delete type=0 #4
+2026/01/29-22:19:56.949 2498 Compacting 1@1 + 1@2 files
+2026/01/29-22:19:56.982 2498 Generated table #9@1: 461 keys, 40750 bytes
+2026/01/29-22:19:56.982 2498 Compacted 1@1 + 1@2 files => 40750 bytes
+2026/01/29-22:19:56.984 2498 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/01/29-22:24:16.278 2498 Level-0 table #11: started
+2026/01/29-22:24:16.313 2498 Level-0 table #11: 710615 bytes OK
+2026/01/29-22:24:16.314 2498 Delete type=2 #5
+2026/01/29-22:24:16.314 2498 Delete type=0 #7
+2026/01/29-22:24:16.314 2498 Delete type=2 #8
+2026/01/29-22:24:16.340 4674 Compacting 1@1 + 1@2 files
+2026/01/29-22:24:16.431 4674 Generated table #12@1: 454 keys, 40793 bytes
+2026/01/29-22:24:16.431 4674 Compacted 1@1 + 1@2 files => 40793 bytes
+2026/01/29-22:24:16.432 4674 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/01/29-22:24:16.432 4674 Delete type=2 #9
+2026/01/29-22:24:16.432 4674 Delete type=2 #11
+2026/01/29-22:29:31.460 32ac Level-0 table #14: started
+2026/01/29-22:29:31.519 32ac Level-0 table #14: 717980 bytes OK
+2026/01/29-22:29:31.520 32ac Delete type=0 #10
+2026/01/29-22:29:31.588 2498 Compacting 1@1 + 1@2 files
+2026/01/29-22:29:31.610 2498 Generated table #15@1: 443 keys, 40208 bytes
+2026/01/29-22:29:31.610 2498 Compacted 1@1 + 1@2 files => 40208 bytes
+2026/01/29-22:29:31.613 2498 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/01/29-22:35:55.117 4674 Level-0 table #17: started
+2026/01/29-22:35:55.158 4674 Level-0 table #17: 711137 bytes OK
+2026/01/29-22:35:55.159 4674 Delete type=2 #12
+2026/01/29-22:35:55.159 4674 Delete type=0 #13
+2026/01/29-22:35:55.159 4674 Delete type=2 #14
+2026/01/29-22:35:55.174 2498 Compacting 1@1 + 1@2 files
+2026/01/29-22:35:55.280 2498 Generated table #18@1: 435 keys, 39794 bytes
+2026/01/29-22:35:55.280 2498 Compacted 1@1 + 1@2 files => 39794 bytes
+2026/01/29-22:35:55.281 2498 compacted to: files[ 0 0 1 0 0 0 0 ]

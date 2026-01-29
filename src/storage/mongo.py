@@ -33,13 +33,22 @@ class MongoWriter:
 
     def upsert_jobs(self, jobs: List[Dict]):
         if self.collection is None:
+            logger.warning("MongoDB collection is None - storage disabled!")
             return
 
         if not jobs:
+            logger.debug("No jobs to upsert")
             return
-            
+        
+        logger.debug(f"Attempting to upsert {len(jobs)} jobs to MongoDB")
+        
+        # Filter out jobs without valid URLs
+        valid_jobs = [j for j in jobs if j.get("url")]
+        if len(valid_jobs) < len(jobs):
+            logger.warning(f"Filtered out {len(jobs) - len(valid_jobs)} jobs with missing URLs")
+        
         count = 0
-        for job in jobs:
+        for job in valid_jobs:
             try:
                 # Upsert based on URL
                 filter_query = {"url": job.get("url")}

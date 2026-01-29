@@ -8,20 +8,44 @@ class GlassdoorScraper(BaseScraper):
     async def search_jobs(self, role: str, location: str, **kwargs) -> List[Dict]:
         await self.initialize()
         
+        max_pages = kwargs.get("max_pages", 10)
+        
         # Glassdoor USA search URL with proper country filter
-        # Using locT=N (nation) and locId=1 (USA) in the query parameters
         encoded_role = role.replace(' ', '%20')
-        url = f"https://www.glassdoor.com/Job/jobs.htm?sc.keyword={encoded_role}&locT=N&locId=1&locKeyword=United%20States"
+        base_url = f"https://www.glassdoor.com/Job/jobs.htm?sc.keyword={encoded_role}&locT=N&locId=1&locKeyword=United%20States"
         
-        logger.info(f"Navigating to Glassdoor USA: {url}")
-        try:
-            await self.navigate(url)
-        except Exception as e:
-            logger.error(f"Glassdoor navigation failed: {e}")
-            return []
+        all_jobs = []
+        current_page = 1
+        
+        while current_page <= max_pages:
+            # Glassdoor uses IP parameter for pagination
+            url = f"{base_url}&p={current_page}" if current_page > 1 else base_url
+            
+            logger.info(f"Navigating to Glassdoor USA page {current_page}: {url}")
+            try:
+                await self.navigate(url)
+            except Exception as e:
+                logger.error(f"Glassdoor navigation failed: {e}")
+                break
 
-        await human_delay(3.0, 6.0)
+            await human_delay(3.0, 6.0)
+            
+            jobs = await self._scrape_current_page(current_page)
+            all_jobs.extend(jobs)
+            
+            if not jobs:
+                logger.info("No jobs found on this page, stopping.")
+                break
+            
+            logger.info(f"Extracted {len(jobs)} jobs from Glassdoor page {current_page}")
+            
+            current_page += 1
+            await human_delay(2.0, 4.0)
         
+        logger.info(f"Total jobs scraped from Glassdoor: {len(all_jobs)}")
+        return all_jobs
+    
+    async def _scrape_current_page(self, page_num: int) -> List[Dict]:
         jobs = []
         try:
             # Check for popup and close if possible
@@ -33,16 +57,16 @@ class GlassdoorScraper(BaseScraper):
             except:
                 pass
 
-            await scroll_page(self.page, steps=5)
+            # Full page scroll - 10 steps
+            await scroll_page(self.page, steps=10)
             
             # Select job cards
             cards = await self.page.locator("li[data-test='jobListing'], div.JobCard, article.job-card").all()
             
             if not cards or len(cards) == 0:
-                # Alternative selector
                 cards = await self.page.locator("div[data-test='job-card'], li.react-job-listing").all()
             
-            logger.info(f"Found {len(cards)} potential job cards on Glassdoor")
+            logger.info(f"Found {len(cards)} potential job cards on Glassdoor page {page_num}")
             
             for card in cards:
                 try:
@@ -72,14 +96,14 @@ class GlassdoorScraper(BaseScraper):
                             "company": company.strip() if company else "Unknown",
                             "location": loc.strip() if loc else "USA",
                             "url": full_link,
-                            "source": "Glassdoor"
+                            "source": "Glassdoor",
+                            "page": page_num
                         })
-                        logger.debug(f"Extracted: {title.strip()} at {company.strip()}")
                         
                 except Exception as e:
                     continue
                     
         except Exception as e:
-            logger.error(f"Error scraping Glassdoor: {e}")
+            logger.error(f"Error scraping Glassdoor page {page_num}: {e}")
             
         return jobs
