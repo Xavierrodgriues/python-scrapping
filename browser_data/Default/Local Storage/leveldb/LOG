@@ -1,0 +1,48 @@
+2026/01/29-20:01:48.310 728 Reusing MANIFEST C:\Users\Welcome\Desktop\python-scraper\browser_data\Default\Local Storage\leveldb/MANIFEST-000001
+2026/01/29-20:01:48.325 728 Recovering log #149
+2026/01/29-20:01:48.328 728 Reusing old log C:\Users\Welcome\Desktop\python-scraper\browser_data\Default\Local Storage\leveldb/000149.log 
+2026/01/29-20:02:43.932 3268 Level-0 table #153: started
+2026/01/29-20:02:43.940 3268 Level-0 table #153: 18738 bytes OK
+2026/01/29-20:02:43.942 3268 Delete type=0 #149
+2026/01/29-20:04:03.054 728 Level-0 table #155: started
+2026/01/29-20:04:03.097 728 Level-0 table #155: 51225 bytes OK
+2026/01/29-20:04:03.099 728 Delete type=0 #152
+2026/01/29-20:04:03.103 728 Compacting 4@0 + 1@1 files
+2026/01/29-20:04:03.118 728 Generated table #156@0: 884 keys, 103839 bytes
+2026/01/29-20:04:03.119 728 Compacted 4@0 + 1@1 files => 103839 bytes
+2026/01/29-20:04:03.119 728 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/01/29-20:04:03.121 728 Delete type=2 #145
+2026/01/29-20:04:03.121 728 Delete type=2 #147
+2026/01/29-20:04:03.121 728 Delete type=2 #150
+2026/01/29-20:04:03.121 728 Delete type=2 #153
+2026/01/29-20:04:03.121 728 Delete type=2 #155
+2026/01/29-20:05:39.790 3268 Level-0 table #158: started
+2026/01/29-20:05:39.796 3268 Level-0 table #158: 30734 bytes OK
+2026/01/29-20:05:39.797 3268 Delete type=0 #154
+2026/01/29-20:06:53.808 3268 Level-0 table #160: started
+2026/01/29-20:06:53.816 3268 Level-0 table #160: 64366 bytes OK
+2026/01/29-20:06:53.818 3268 Delete type=0 #157
+2026/01/29-20:08:26.314 728 Level-0 table #162: started
+2026/01/29-20:08:26.331 728 Level-0 table #162: 25730 bytes OK
+2026/01/29-20:08:26.340 728 Delete type=0 #159
+2026/01/29-20:09:42.739 3268 Level-0 table #164: started
+2026/01/29-20:09:42.748 3268 Level-0 table #164: 60057 bytes OK
+2026/01/29-20:09:42.750 3268 Delete type=0 #161
+2026/01/29-20:09:42.752 3268 Compacting 4@0 + 1@1 files
+2026/01/29-20:09:42.776 3268 Generated table #165@0: 940 keys, 105425 bytes
+2026/01/29-20:09:42.776 3268 Compacted 4@0 + 1@1 files => 105425 bytes
+2026/01/29-20:09:42.777 3268 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/01/29-20:09:42.779 3268 Delete type=2 #156
+2026/01/29-20:09:42.779 3268 Delete type=2 #158
+2026/01/29-20:09:42.779 3268 Delete type=2 #160
+2026/01/29-20:09:42.779 3268 Delete type=2 #162
+2026/01/29-20:09:42.779 3268 Delete type=2 #164
+2026/01/29-20:12:27.309 728 Level-0 table #167: started
+2026/01/29-20:12:27.316 728 Level-0 table #167: 55730 bytes OK
+2026/01/29-20:12:27.318 728 Delete type=0 #163
+2026/01/29-20:13:17.493 3268 Level-0 table #169: started
+2026/01/29-20:13:17.500 3268 Level-0 table #169: 15060 bytes OK
+2026/01/29-20:13:17.505 3268 Delete type=0 #166
+2026/01/29-20:14:32.729 3268 Level-0 table #171: started
+2026/01/29-20:14:32.741 3268 Level-0 table #171: 56552 bytes OK
+2026/01/29-20:14:32.751 3268 Delete type=0 #168

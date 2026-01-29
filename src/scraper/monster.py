@@ -1,4 +1,4 @@
-from typing import List, Dict
+﻿from typing import List, Dict
 from loguru import logger
 from src.scraper.base import BaseScraper
 from src.core.utils import human_delay, scroll_page
@@ -10,7 +10,7 @@ class MonsterScraper(BaseScraper):
         url = f"https://www.monster.com/jobs/search?q={role}&where={location}"
         
         logger.info(f"Navigating to Monster: {url}")
-        await self.browser_manager.navigate(url)
+        await self.navigate(url)
         await human_delay(3.0, 5.0)
         
         jobs = []

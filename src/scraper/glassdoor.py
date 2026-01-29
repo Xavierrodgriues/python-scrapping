@@ -1,4 +1,4 @@
-from typing import List, Dict
+﻿from typing import List, Dict
 from loguru import logger
 from src.scraper.base import BaseScraper
 from src.core.utils import human_delay, scroll_page
@@ -13,7 +13,7 @@ class GlassdoorScraper(BaseScraper):
         logger.info(f"Navigating to Glassdoor: {url}")
         # Glassdoor is extremely aggressive with blocks.
         try:
-            await self.browser_manager.navigate(url)
+            await self.navigate(url)
         except Exception as e:
              logger.error(f"Glassdoor navigation failed: {e}")
              return []

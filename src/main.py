@@ -2,7 +2,7 @@ import asyncio
 import yaml
 from loguru import logger
 from src.core.browser import BrowserManager
-from src.core.utils import setup_logging
+from src.core.utils import setup_logging, get_role_variations
 from src.storage.writer import JobWriter
 from src.storage.mongo import MongoWriter
 from src.scraper.indeed import IndeedScraper
@@ -13,9 +13,39 @@ from src.scraper.google_jobs import GoogleJobsScraper
 
 import argparse
 
+async def run_scraper(scraper, variation, location, mongo_writer, all_jobs, cat_name):
+    """Worker function to run a single scraper."""
+    scraper_name = scraper.__class__.__name__
+    logger.info(f"Starting {scraper_name} for {variation}...")
+    try:
+        # Pass explicit date filter if supported by scraper impl
+        jobs = await scraper.search_jobs(variation, location, days_old=30, max_pages=10)
+        
+        # Enrich with category
+        for job in jobs:
+            job["category"] = cat_name
+            
+        # Save incrementally to MongoDB
+        if jobs:
+            mongo_writer.upsert_jobs(jobs)
+        
+        all_jobs.extend(jobs)
+        logger.success(f"Found {len(jobs)} jobs for {variation} in {location} on {scraper_name}")
+        
+    except Exception as e:
+        logger.error(f"Failed processing {variation} in {location} on {scraper_name}: {e}")
+    finally:
+        # Ideally close the page here to free resources
+        if scraper.page:
+            try:
+                await scraper.page.close()
+            except:
+                pass
+
 async def run():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="config/search_config.yaml", help="Path to configuration file")
+    parser.add_argument("--scrapers", default=None, help="Comma-separated list of scrapers to run (e.g., 'IndeedScraper,RemoteOKScraper')")
     args = parser.parse_args()
 
     # Load config
@@ -29,6 +59,7 @@ async def run():
     # Setup logging
     setup_logging(global_config.get("paths", {}).get("logs_dir", "logs"))
     
+    # Singleton Browser Manager (Persistent Context)
     browser_manager = BrowserManager()
     writer = JobWriter(global_config.get("paths", {}).get("data_dir", "data"))
     mongo_writer = MongoWriter() # Initialize MongoDB writer
@@ -38,22 +69,40 @@ async def run():
     try:
         await browser_manager.start()
         
-        scrapers = [
-            IndeedScraper(browser_manager),
-            LinkedinScraper(browser_manager),
-            GlassdoorScraper(browser_manager),
-            MonsterScraper(browser_manager),
-            GoogleJobsScraper(browser_manager)
-        ]
+        # Dynamic discovery
+        import pkgutil
+        import importlib
+        import inspect
+        import src.scraper
+        from src.scraper.base import BaseScraper
+
+        # Load scraper classes first (don't instantiate yet)
+        scraper_classes = []
+        package_path = src.scraper.__path__
+        prefix = src.scraper.__name__ + "."
+        
+        target_scrapers = None
+        if args.scrapers:
+            target_scrapers = [s.strip().lower() for s in args.scrapers.split(",")]
+
+        for _, name, _ in pkgutil.iter_modules(package_path, prefix):
+            try:
+                module = importlib.import_module(name)
+                for name, obj in inspect.getmembers(module):
+                    if inspect.isclass(obj) and issubclass(obj, BaseScraper) and obj is not BaseScraper:
+                        if target_scrapers and obj.__name__.lower() not in target_scrapers:
+                            continue
+                        scraper_classes.append(obj)
+            except Exception as e:
+                logger.error(f"Failed to load module {name}: {e}")
+
+        logger.info(f"Loaded {len(scraper_classes)} scraper classes.")
         
         categories = search_config.get("categories", [])
         filters = search_config.get("filters", {})
         location = filters.get("location", "USA")
         
-        # Calculate max pages or deep scrape flag? 
-        # For now, we rely on scrapers' internal pagination limits or explicit kwargs if we add them.
-        # User requested "fetch every page".
-        
+        # Process Categories
         for category in categories:
             cat_name = category.get("name")
             roles = category.get("roles", [])
@@ -61,29 +110,42 @@ async def run():
             logger.info(f"Processing Category: {cat_name}")
             
             for role in roles:
-                for scraper in scrapers:
-                    scraper_name = scraper.__class__.__name__
-                    logger.info(f"Searching for {role} in {location} on {scraper_name}...")
+                # PARALLEL EXECUTION STRATEGY:
+                # Run scrapers in parallel but with concurrency limits
+                variation = role 
+                logger.info(f"-- Parallel Batch for: {variation} --")
+                
+                # Limit concurrency to 5 tabs to prevent browser freezing
+                semaphore = asyncio.Semaphore(5)
+                
+                async def sem_task(cls):
+                    async with semaphore:
+                        # Instantiate fresh scraper
+                        scraper_instance = cls(browser_manager)
+                        # Wrap in hard timeout of 120s per scraper
+                        try:
+                            await asyncio.wait_for(
+                                run_scraper(scraper_instance, variation, location, mongo_writer, all_jobs, cat_name),
+                                timeout=120.0
+                            )
+                        except asyncio.TimeoutError:
+                            logger.error(f"Scraper {cls.__name__} timed out after 120s.")
+                            # Attempt clean close
+                            if scraper_instance.page:
+                                try:
+                                    await scraper_instance.page.close()
+                                except: pass
+                        except Exception as e:
+                            logger.error(f"Error in scraper task {cls.__name__}: {e}")
+
+                tasks = [asyncio.create_task(sem_task(cls)) for cls in scraper_classes]
+                
+                if tasks:
+                    await asyncio.gather(*tasks)
                     
-                    try:
-                        # Pass explicit date filter if supported by scraper impl
-                        # We haven't fully implemented dynamic date filtering in individual scrapers yet,
-                        # but we can pass it in kwargs for future expansion.
-                        jobs = await scraper.search_jobs(role, location, days_old=30)
-                        
-                        # Enrich with category
-                        for job in jobs:
-                            job["category"] = cat_name
-                            
-                        # Save incrementally to MongoDB to avoid data loss
-                        mongo_writer.upsert_jobs(jobs)
-                        
-                        all_jobs.extend(jobs)
-                        logger.success(f"Found {len(jobs)} jobs for {role} in {location} on {scraper_name}")
-                        
-                    except Exception as e:
-                        logger.error(f"Failed processing {role} in {location} on {scraper_name}: {e}")
-                        
+                    # Small delay between batches to be nice
+                    await asyncio.sleep(2)
+
     except Exception as e:
         logger.critical(f"Critical error: {e}")
     finally:

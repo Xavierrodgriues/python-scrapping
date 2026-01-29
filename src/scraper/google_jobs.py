@@ -1,4 +1,4 @@
-from typing import List, Dict
+﻿from typing import List, Dict
 from loguru import logger
 from src.scraper.base import BaseScraper
 from src.core.utils import human_delay, scroll_page
@@ -13,7 +13,7 @@ class GoogleJobsScraper(BaseScraper):
         url = f"https://www.google.com/search?q={role}+jobs+near+{location}&ibp=htl;jobs&tbs={time_filter}"
         
         logger.info(f"Navigating to Google Jobs: {url}")
-        await self.browser_manager.navigate(url)
+        await self.navigate(url)
         await human_delay(2.0, 4.0)
         
         jobs = []

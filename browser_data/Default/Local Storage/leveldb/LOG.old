@@ -1,0 +1,6 @@
+2026/01/29-19:57:30.976 45cc Reusing MANIFEST C:\Users\Welcome\Desktop\python-scraper\browser_data\Default\Local Storage\leveldb/MANIFEST-000001
+2026/01/29-19:57:31.001 45cc Recovering log #146
+2026/01/29-19:57:31.004 45cc Reusing old log C:\Users\Welcome\Desktop\python-scraper\browser_data\Default\Local Storage\leveldb/000146.log 
+2026/01/29-19:59:39.992 45cc Level-0 table #150: started
+2026/01/29-19:59:39.999 45cc Level-0 table #150: 15602 bytes OK
+2026/01/29-19:59:40.001 45cc Delete type=0 #146

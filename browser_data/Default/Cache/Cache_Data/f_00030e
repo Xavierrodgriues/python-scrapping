@@ -1,0 +1,1451 @@
+var pixel_v2 = (function (exports) {
+	'use strict';
+
+	var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+	function getAugmentedNamespace(n) {
+	  if (n.__esModule) return n;
+	  var f = n.default;
+		if (typeof f == "function") {
+			var a = function a () {
+				if (this instanceof a) {
+	        return Reflect.construct(f, arguments, this.constructor);
+				}
+				return f.apply(this, arguments);
+			};
+			a.prototype = f.prototype;
+	  } else a = {};
+	  Object.defineProperty(a, '__esModule', {value: true});
+		Object.keys(n).forEach(function (k) {
+			var d = Object.getOwnPropertyDescriptor(n, k);
+			Object.defineProperty(a, k, d.get ? d : {
+				enumerable: true,
+				get: function () {
+					return n[k];
+				}
+			});
+		});
+		return a;
+	}
+
+	var md5 = {exports: {}};
+
+	const __viteBrowserExternal = {};
+
+	const __viteBrowserExternal$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+		__proto__: null,
+		default: __viteBrowserExternal
+	}, Symbol.toStringTag, { value: 'Module' }));
+
+	const require$$1 = /*@__PURE__*/getAugmentedNamespace(__viteBrowserExternal$1);
+
+	/**
+	 * [js-md5]{@link https://github.com/emn178/js-md5}
+	 *
+	 * @namespace md5
+	 * @version 0.8.3
+	 * @author Chen, Yi-Cyuan [emn178@gmail.com]
+	 * @copyright Chen, Yi-Cyuan 2014-2023
+	 * @license MIT
+	 */
+
+	var hasRequiredMd5;
+
+	function requireMd5 () {
+		if (hasRequiredMd5) return md5.exports;
+		hasRequiredMd5 = 1;
+		(function (module) {
+			(function () {
+
+			  var INPUT_ERROR = 'input is invalid type';
+			  var FINALIZE_ERROR = 'finalize already called';
+			  var WINDOW = typeof window === 'object';
+			  var root = WINDOW ? window : {};
+			  if (root.JS_MD5_NO_WINDOW) {
+			    WINDOW = false;
+			  }
+			  var WEB_WORKER = !WINDOW && typeof self === 'object';
+			  var NODE_JS = !root.JS_MD5_NO_NODE_JS && typeof process === 'object' && process.versions && process.versions.node;
+			  if (NODE_JS) {
+			    root = commonjsGlobal;
+			  } else if (WEB_WORKER) {
+			    root = self;
+			  }
+			  var COMMON_JS = !root.JS_MD5_NO_COMMON_JS && 'object' === 'object' && module.exports;
+			  var ARRAY_BUFFER = !root.JS_MD5_NO_ARRAY_BUFFER && typeof ArrayBuffer !== 'undefined';
+			  var HEX_CHARS = '0123456789abcdef'.split('');
+			  var EXTRA = [128, 32768, 8388608, -2147483648];
+			  var SHIFT = [0, 8, 16, 24];
+			  var OUTPUT_TYPES = ['hex', 'array', 'digest', 'buffer', 'arrayBuffer', 'base64'];
+			  var BASE64_ENCODE_CHAR = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'.split('');
+
+			  var blocks = [], buffer8;
+			  if (ARRAY_BUFFER) {
+			    var buffer = new ArrayBuffer(68);
+			    buffer8 = new Uint8Array(buffer);
+			    blocks = new Uint32Array(buffer);
+			  }
+
+			  var isArray = Array.isArray;
+			  if (root.JS_MD5_NO_NODE_JS || !isArray) {
+			    isArray = function (obj) {
+			      return Object.prototype.toString.call(obj) === '[object Array]';
+			    };
+			  }
+
+			  var isView = ArrayBuffer.isView;
+			  if (ARRAY_BUFFER && (root.JS_MD5_NO_ARRAY_BUFFER_IS_VIEW || !isView)) {
+			    isView = function (obj) {
+			      return typeof obj === 'object' && obj.buffer && obj.buffer.constructor === ArrayBuffer;
+			    };
+			  }
+
+			  // [message: string, isString: bool]
+			  var formatMessage = function (message) {
+			    var type = typeof message;
+			    if (type === 'string') {
+			      return [message, true];
+			    }
+			    if (type !== 'object' || message === null) {
+			      throw new Error(INPUT_ERROR);
+			    }
+			    if (ARRAY_BUFFER && message.constructor === ArrayBuffer) {
+			      return [new Uint8Array(message), false];
+			    }
+			    if (!isArray(message) && !isView(message)) {
+			      throw new Error(INPUT_ERROR);
+			    }
+			    return [message, false];
+			  };
+
+			  /**
+			   * @method hex
+			   * @memberof md5
+			   * @description Output hash as hex string
+			   * @param {String|Array|Uint8Array|ArrayBuffer} message message to hash
+			   * @returns {String} Hex string
+			   * @example
+			   * md5.hex('The quick brown fox jumps over the lazy dog');
+			   * // equal to
+			   * md5('The quick brown fox jumps over the lazy dog');
+			   */
+			  /**
+			   * @method digest
+			   * @memberof md5
+			   * @description Output hash as bytes array
+			   * @param {String|Array|Uint8Array|ArrayBuffer} message message to hash
+			   * @returns {Array} Bytes array
+			   * @example
+			   * md5.digest('The quick brown fox jumps over the lazy dog');
+			   */
+			  /**
+			   * @method array
+			   * @memberof md5
+			   * @description Output hash as bytes array
+			   * @param {String|Array|Uint8Array|ArrayBuffer} message message to hash
+			   * @returns {Array} Bytes array
+			   * @example
+			   * md5.array('The quick brown fox jumps over the lazy dog');
+			   */
+			  /**
+			   * @method arrayBuffer
+			   * @memberof md5
+			   * @description Output hash as ArrayBuffer
+			   * @param {String|Array|Uint8Array|ArrayBuffer} message message to hash
+			   * @returns {ArrayBuffer} ArrayBuffer
+			   * @example
+			   * md5.arrayBuffer('The quick brown fox jumps over the lazy dog');
+			   */
+			  /**
+			   * @method buffer
+			   * @deprecated This maybe confuse with Buffer in node.js. Please use arrayBuffer instead.
+			   * @memberof md5
+			   * @description Output hash as ArrayBuffer
+			   * @param {String|Array|Uint8Array|ArrayBuffer} message message to hash
+			   * @returns {ArrayBuffer} ArrayBuffer
+			   * @example
+			   * md5.buffer('The quick brown fox jumps over the lazy dog');
+			   */
+			  /**
+			   * @method base64
+			   * @memberof md5
+			   * @description Output hash as base64 string
+			   * @param {String|Array|Uint8Array|ArrayBuffer} message message to hash
+			   * @returns {String} base64 string
+			   * @example
+			   * md5.base64('The quick brown fox jumps over the lazy dog');
+			   */
+			  var createOutputMethod = function (outputType) {
+			    return function (message) {
+			      return new Md5(true).update(message)[outputType]();
+			    };
+			  };
+
+			  /**
+			   * @method create
+			   * @memberof md5
+			   * @description Create Md5 object
+			   * @returns {Md5} Md5 object.
+			   * @example
+			   * var hash = md5.create();
+			   */
+			  /**
+			   * @method update
+			   * @memberof md5
+			   * @description Create and update Md5 object
+			   * @param {String|Array|Uint8Array|ArrayBuffer} message message to hash
+			   * @returns {Md5} Md5 object.
+			   * @example
+			   * var hash = md5.update('The quick brown fox jumps over the lazy dog');
+			   * // equal to
+			   * var hash = md5.create();
+			   * hash.update('The quick brown fox jumps over the lazy dog');
+			   */
+			  var createMethod = function () {
+			    var method = createOutputMethod('hex');
+			    if (NODE_JS) {
+			      method = nodeWrap(method);
+			    }
+			    method.create = function () {
+			      return new Md5();
+			    };
+			    method.update = function (message) {
+			      return method.create().update(message);
+			    };
+			    for (var i = 0; i < OUTPUT_TYPES.length; ++i) {
+			      var type = OUTPUT_TYPES[i];
+			      method[type] = createOutputMethod(type);
+			    }
+			    return method;
+			  };
+
+			  var nodeWrap = function (method) {
+			    var crypto = require$$1;
+			    var Buffer = require$$1.Buffer;
+			    var bufferFrom;
+			    if (Buffer.from && !root.JS_MD5_NO_BUFFER_FROM) {
+			      bufferFrom = Buffer.from;
+			    } else {
+			      bufferFrom = function (message) {
+			        return new Buffer(message);
+			      };
+			    }
+			    var nodeMethod = function (message) {
+			      if (typeof message === 'string') {
+			        return crypto.createHash('md5').update(message, 'utf8').digest('hex');
+			      } else {
+			        if (message === null || message === undefined) {
+			          throw new Error(INPUT_ERROR);
+			        } else if (message.constructor === ArrayBuffer) {
+			          message = new Uint8Array(message);
+			        }
+			      }
+			      if (isArray(message) || isView(message) ||
+			        message.constructor === Buffer) {
+			        return crypto.createHash('md5').update(bufferFrom(message)).digest('hex');
+			      } else {
+			        return method(message);
+			      }
+			    };
+			    return nodeMethod;
+			  };
+
+			  /**
+			   * @namespace md5.hmac
+			   */
+			  /**
+			   * @method hex
+			   * @memberof md5.hmac
+			   * @description Output hash as hex string
+			   * @param {String|Array|Uint8Array|ArrayBuffer} key key
+			   * @param {String|Array|Uint8Array|ArrayBuffer} message message to hash
+			   * @returns {String} Hex string
+			   * @example
+			   * md5.hmac.hex('key', 'The quick brown fox jumps over the lazy dog');
+			   * // equal to
+			   * md5.hmac('key', 'The quick brown fox jumps over the lazy dog');
+			   */
+
+			  /**
+			   * @method digest
+			   * @memberof md5.hmac
+			   * @description Output hash as bytes array
+			   * @param {String|Array|Uint8Array|ArrayBuffer} key key
+			   * @param {String|Array|Uint8Array|ArrayBuffer} message message to hash
+			   * @returns {Array} Bytes array
+			   * @example
+			   * md5.hmac.digest('key', 'The quick brown fox jumps over the lazy dog');
+			   */
+			  /**
+			   * @method array
+			   * @memberof md5.hmac
+			   * @description Output hash as bytes array
+			   * @param {String|Array|Uint8Array|ArrayBuffer} key key
+			   * @param {String|Array|Uint8Array|ArrayBuffer} message message to hash
+			   * @returns {Array} Bytes array
+			   * @example
+			   * md5.hmac.array('key', 'The quick brown fox jumps over the lazy dog');
+			   */
+			  /**
+			   * @method arrayBuffer
+			   * @memberof md5.hmac
+			   * @description Output hash as ArrayBuffer
+			   * @param {String|Array|Uint8Array|ArrayBuffer} key key
+			   * @param {String|Array|Uint8Array|ArrayBuffer} message message to hash
+			   * @returns {ArrayBuffer} ArrayBuffer
+			   * @example
+			   * md5.hmac.arrayBuffer('key', 'The quick brown fox jumps over the lazy dog');
+			   */
+			  /**
+			   * @method buffer
+			   * @deprecated This maybe confuse with Buffer in node.js. Please use arrayBuffer instead.
+			   * @memberof md5.hmac
+			   * @description Output hash as ArrayBuffer
+			   * @param {String|Array|Uint8Array|ArrayBuffer} key key
+			   * @param {String|Array|Uint8Array|ArrayBuffer} message message to hash
+			   * @returns {ArrayBuffer} ArrayBuffer
+			   * @example
+			   * md5.hmac.buffer('key', 'The quick brown fox jumps over the lazy dog');
+			   */
+			  /**
+			   * @method base64
+			   * @memberof md5.hmac
+			   * @description Output hash as base64 string
+			   * @param {String|Array|Uint8Array|ArrayBuffer} key key
+			   * @param {String|Array|Uint8Array|ArrayBuffer} message message to hash
+			   * @returns {String} base64 string
+			   * @example
+			   * md5.hmac.base64('key', 'The quick brown fox jumps over the lazy dog');
+			   */
+			  var createHmacOutputMethod = function (outputType) {
+			    return function (key, message) {
+			      return new HmacMd5(key, true).update(message)[outputType]();
+			    };
+			  };
+
+			  /**
+			   * @method create
+			   * @memberof md5.hmac
+			   * @description Create HmacMd5 object
+			   * @param {String|Array|Uint8Array|ArrayBuffer} key key
+			   * @returns {HmacMd5} HmacMd5 object.
+			   * @example
+			   * var hash = md5.hmac.create('key');
+			   */
+			  /**
+			   * @method update
+			   * @memberof md5.hmac
+			   * @description Create and update HmacMd5 object
+			   * @param {String|Array|Uint8Array|ArrayBuffer} key key
+			   * @param {String|Array|Uint8Array|ArrayBuffer} message message to hash
+			   * @returns {HmacMd5} HmacMd5 object.
+			   * @example
+			   * var hash = md5.hmac.update('key', 'The quick brown fox jumps over the lazy dog');
+			   * // equal to
+			   * var hash = md5.hmac.create('key');
+			   * hash.update('The quick brown fox jumps over the lazy dog');
+			   */
+			  var createHmacMethod = function () {
+			    var method = createHmacOutputMethod('hex');
+			    method.create = function (key) {
+			      return new HmacMd5(key);
+			    };
+			    method.update = function (key, message) {
+			      return method.create(key).update(message);
+			    };
+			    for (var i = 0; i < OUTPUT_TYPES.length; ++i) {
+			      var type = OUTPUT_TYPES[i];
+			      method[type] = createHmacOutputMethod(type);
+			    }
+			    return method;
+			  };
+
+			  /**
+			   * Md5 class
+			   * @class Md5
+			   * @description This is internal class.
+			   * @see {@link md5.create}
+			   */
+			  function Md5(sharedMemory) {
+			    if (sharedMemory) {
+			      blocks[0] = blocks[16] = blocks[1] = blocks[2] = blocks[3] =
+			      blocks[4] = blocks[5] = blocks[6] = blocks[7] =
+			      blocks[8] = blocks[9] = blocks[10] = blocks[11] =
+			      blocks[12] = blocks[13] = blocks[14] = blocks[15] = 0;
+			      this.blocks = blocks;
+			      this.buffer8 = buffer8;
+			    } else {
+			      if (ARRAY_BUFFER) {
+			        var buffer = new ArrayBuffer(68);
+			        this.buffer8 = new Uint8Array(buffer);
+			        this.blocks = new Uint32Array(buffer);
+			      } else {
+			        this.blocks = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+			      }
+			    }
+			    this.h0 = this.h1 = this.h2 = this.h3 = this.start = this.bytes = this.hBytes = 0;
+			    this.finalized = this.hashed = false;
+			    this.first = true;
+			  }
+
+			  /**
+			   * @method update
+			   * @memberof Md5
+			   * @instance
+			   * @description Update hash
+			   * @param {String|Array|Uint8Array|ArrayBuffer} message message to hash
+			   * @returns {Md5} Md5 object.
+			   * @see {@link md5.update}
+			   */
+			  Md5.prototype.update = function (message) {
+			    if (this.finalized) {
+			      throw new Error(FINALIZE_ERROR);
+			    }
+
+			    var result = formatMessage(message);
+			    message = result[0];
+			    var isString = result[1];
+			    var code, index = 0, i, length = message.length, blocks = this.blocks;
+			    var buffer8 = this.buffer8;
+
+			    while (index < length) {
+			      if (this.hashed) {
+			        this.hashed = false;
+			        blocks[0] = blocks[16];
+			        blocks[16] = blocks[1] = blocks[2] = blocks[3] =
+			        blocks[4] = blocks[5] = blocks[6] = blocks[7] =
+			        blocks[8] = blocks[9] = blocks[10] = blocks[11] =
+			        blocks[12] = blocks[13] = blocks[14] = blocks[15] = 0;
+			      }
+
+			      if (isString) {
+			        if (ARRAY_BUFFER) {
+			          for (i = this.start; index < length && i < 64; ++index) {
+			            code = message.charCodeAt(index);
+			            if (code < 0x80) {
+			              buffer8[i++] = code;
+			            } else if (code < 0x800) {
+			              buffer8[i++] = 0xc0 | (code >>> 6);
+			              buffer8[i++] = 0x80 | (code & 0x3f);
+			            } else if (code < 0xd800 || code >= 0xe000) {
+			              buffer8[i++] = 0xe0 | (code >>> 12);
+			              buffer8[i++] = 0x80 | ((code >>> 6) & 0x3f);
+			              buffer8[i++] = 0x80 | (code & 0x3f);
+			            } else {
+			              code = 0x10000 + (((code & 0x3ff) << 10) | (message.charCodeAt(++index) & 0x3ff));
+			              buffer8[i++] = 0xf0 | (code >>> 18);
+			              buffer8[i++] = 0x80 | ((code >>> 12) & 0x3f);
+			              buffer8[i++] = 0x80 | ((code >>> 6) & 0x3f);
+			              buffer8[i++] = 0x80 | (code & 0x3f);
+			            }
+			          }
+			        } else {
+			          for (i = this.start; index < length && i < 64; ++index) {
+			            code = message.charCodeAt(index);
+			            if (code < 0x80) {
+			              blocks[i >>> 2] |= code << SHIFT[i++ & 3];
+			            } else if (code < 0x800) {
+			              blocks[i >>> 2] |= (0xc0 | (code >>> 6)) << SHIFT[i++ & 3];
+			              blocks[i >>> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
+			            } else if (code < 0xd800 || code >= 0xe000) {
+			              blocks[i >>> 2] |= (0xe0 | (code >>> 12)) << SHIFT[i++ & 3];
+			              blocks[i >>> 2] |= (0x80 | ((code >>> 6) & 0x3f)) << SHIFT[i++ & 3];
+			              blocks[i >>> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
+			            } else {
+			              code = 0x10000 + (((code & 0x3ff) << 10) | (message.charCodeAt(++index) & 0x3ff));
+			              blocks[i >>> 2] |= (0xf0 | (code >>> 18)) << SHIFT[i++ & 3];
+			              blocks[i >>> 2] |= (0x80 | ((code >>> 12) & 0x3f)) << SHIFT[i++ & 3];
+			              blocks[i >>> 2] |= (0x80 | ((code >>> 6) & 0x3f)) << SHIFT[i++ & 3];
+			              blocks[i >>> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
+			            }
+			          }
+			        }
+			      } else {
+			        if (ARRAY_BUFFER) {
+			          for (i = this.start; index < length && i < 64; ++index) {
+			            buffer8[i++] = message[index];
+			          }
+			        } else {
+			          for (i = this.start; index < length && i < 64; ++index) {
+			            blocks[i >>> 2] |= message[index] << SHIFT[i++ & 3];
+			          }
+			        }
+			      }
+			      this.lastByteIndex = i;
+			      this.bytes += i - this.start;
+			      if (i >= 64) {
+			        this.start = i - 64;
+			        this.hash();
+			        this.hashed = true;
+			      } else {
+			        this.start = i;
+			      }
+			    }
+			    if (this.bytes > 4294967295) {
+			      this.hBytes += this.bytes / 4294967296 << 0;
+			      this.bytes = this.bytes % 4294967296;
+			    }
+			    return this;
+			  };
+
+			  Md5.prototype.finalize = function () {
+			    if (this.finalized) {
+			      return;
+			    }
+			    this.finalized = true;
+			    var blocks = this.blocks, i = this.lastByteIndex;
+			    blocks[i >>> 2] |= EXTRA[i & 3];
+			    if (i >= 56) {
+			      if (!this.hashed) {
+			        this.hash();
+			      }
+			      blocks[0] = blocks[16];
+			      blocks[16] = blocks[1] = blocks[2] = blocks[3] =
+			      blocks[4] = blocks[5] = blocks[6] = blocks[7] =
+			      blocks[8] = blocks[9] = blocks[10] = blocks[11] =
+			      blocks[12] = blocks[13] = blocks[14] = blocks[15] = 0;
+			    }
+			    blocks[14] = this.bytes << 3;
+			    blocks[15] = this.hBytes << 3 | this.bytes >>> 29;
+			    this.hash();
+			  };
+
+			  Md5.prototype.hash = function () {
+			    var a, b, c, d, bc, da, blocks = this.blocks;
+
+			    if (this.first) {
+			      a = blocks[0] - 680876937;
+			      a = (a << 7 | a >>> 25) - 271733879 << 0;
+			      d = (-1732584194 ^ a & 2004318071) + blocks[1] - 117830708;
+			      d = (d << 12 | d >>> 20) + a << 0;
+			      c = (-271733879 ^ (d & (a ^ -271733879))) + blocks[2] - 1126478375;
+			      c = (c << 17 | c >>> 15) + d << 0;
+			      b = (a ^ (c & (d ^ a))) + blocks[3] - 1316259209;
+			      b = (b << 22 | b >>> 10) + c << 0;
+			    } else {
+			      a = this.h0;
+			      b = this.h1;
+			      c = this.h2;
+			      d = this.h3;
+			      a += (d ^ (b & (c ^ d))) + blocks[0] - 680876936;
+			      a = (a << 7 | a >>> 25) + b << 0;
+			      d += (c ^ (a & (b ^ c))) + blocks[1] - 389564586;
+			      d = (d << 12 | d >>> 20) + a << 0;
+			      c += (b ^ (d & (a ^ b))) + blocks[2] + 606105819;
+			      c = (c << 17 | c >>> 15) + d << 0;
+			      b += (a ^ (c & (d ^ a))) + blocks[3] - 1044525330;
+			      b = (b << 22 | b >>> 10) + c << 0;
+			    }
+
+			    a += (d ^ (b & (c ^ d))) + blocks[4] - 176418897;
+			    a = (a << 7 | a >>> 25) + b << 0;
+			    d += (c ^ (a & (b ^ c))) + blocks[5] + 1200080426;
+			    d = (d << 12 | d >>> 20) + a << 0;
+			    c += (b ^ (d & (a ^ b))) + blocks[6] - 1473231341;
+			    c = (c << 17 | c >>> 15) + d << 0;
+			    b += (a ^ (c & (d ^ a))) + blocks[7] - 45705983;
+			    b = (b << 22 | b >>> 10) + c << 0;
+			    a += (d ^ (b & (c ^ d))) + blocks[8] + 1770035416;
+			    a = (a << 7 | a >>> 25) + b << 0;
+			    d += (c ^ (a & (b ^ c))) + blocks[9] - 1958414417;
+			    d = (d << 12 | d >>> 20) + a << 0;
+			    c += (b ^ (d & (a ^ b))) + blocks[10] - 42063;
+			    c = (c << 17 | c >>> 15) + d << 0;
+			    b += (a ^ (c & (d ^ a))) + blocks[11] - 1990404162;
+			    b = (b << 22 | b >>> 10) + c << 0;
+			    a += (d ^ (b & (c ^ d))) + blocks[12] + 1804603682;
+			    a = (a << 7 | a >>> 25) + b << 0;
+			    d += (c ^ (a & (b ^ c))) + blocks[13] - 40341101;
+			    d = (d << 12 | d >>> 20) + a << 0;
+			    c += (b ^ (d & (a ^ b))) + blocks[14] - 1502002290;
+			    c = (c << 17 | c >>> 15) + d << 0;
+			    b += (a ^ (c & (d ^ a))) + blocks[15] + 1236535329;
+			    b = (b << 22 | b >>> 10) + c << 0;
+			    a += (c ^ (d & (b ^ c))) + blocks[1] - 165796510;
+			    a = (a << 5 | a >>> 27) + b << 0;
+			    d += (b ^ (c & (a ^ b))) + blocks[6] - 1069501632;
+			    d = (d << 9 | d >>> 23) + a << 0;
+			    c += (a ^ (b & (d ^ a))) + blocks[11] + 643717713;
+			    c = (c << 14 | c >>> 18) + d << 0;
+			    b += (d ^ (a & (c ^ d))) + blocks[0] - 373897302;
+			    b = (b << 20 | b >>> 12) + c << 0;
+			    a += (c ^ (d & (b ^ c))) + blocks[5] - 701558691;
+			    a = (a << 5 | a >>> 27) + b << 0;
+			    d += (b ^ (c & (a ^ b))) + blocks[10] + 38016083;
+			    d = (d << 9 | d >>> 23) + a << 0;
+			    c += (a ^ (b & (d ^ a))) + blocks[15] - 660478335;
+			    c = (c << 14 | c >>> 18) + d << 0;
+			    b += (d ^ (a & (c ^ d))) + blocks[4] - 405537848;
+			    b = (b << 20 | b >>> 12) + c << 0;
+			    a += (c ^ (d & (b ^ c))) + blocks[9] + 568446438;
+			    a = (a << 5 | a >>> 27) + b << 0;
+			    d += (b ^ (c & (a ^ b))) + blocks[14] - 1019803690;
+			    d = (d << 9 | d >>> 23) + a << 0;
+			    c += (a ^ (b & (d ^ a))) + blocks[3] - 187363961;
+			    c = (c << 14 | c >>> 18) + d << 0;
+			    b += (d ^ (a & (c ^ d))) + blocks[8] + 1163531501;
+			    b = (b << 20 | b >>> 12) + c << 0;
+			    a += (c ^ (d & (b ^ c))) + blocks[13] - 1444681467;
+			    a = (a << 5 | a >>> 27) + b << 0;
+			    d += (b ^ (c & (a ^ b))) + blocks[2] - 51403784;
+			    d = (d << 9 | d >>> 23) + a << 0;
+			    c += (a ^ (b & (d ^ a))) + blocks[7] + 1735328473;
+			    c = (c << 14 | c >>> 18) + d << 0;
+			    b += (d ^ (a & (c ^ d))) + blocks[12] - 1926607734;
+			    b = (b << 20 | b >>> 12) + c << 0;
+			    bc = b ^ c;
+			    a += (bc ^ d) + blocks[5] - 378558;
+			    a = (a << 4 | a >>> 28) + b << 0;
+			    d += (bc ^ a) + blocks[8] - 2022574463;
+			    d = (d << 11 | d >>> 21) + a << 0;
+			    da = d ^ a;
+			    c += (da ^ b) + blocks[11] + 1839030562;
+			    c = (c << 16 | c >>> 16) + d << 0;
+			    b += (da ^ c) + blocks[14] - 35309556;
+			    b = (b << 23 | b >>> 9) + c << 0;
+			    bc = b ^ c;
+			    a += (bc ^ d) + blocks[1] - 1530992060;
+			    a = (a << 4 | a >>> 28) + b << 0;
+			    d += (bc ^ a) + blocks[4] + 1272893353;
+			    d = (d << 11 | d >>> 21) + a << 0;
+			    da = d ^ a;
+			    c += (da ^ b) + blocks[7] - 155497632;
+			    c = (c << 16 | c >>> 16) + d << 0;
+			    b += (da ^ c) + blocks[10] - 1094730640;
+			    b = (b << 23 | b >>> 9) + c << 0;
+			    bc = b ^ c;
+			    a += (bc ^ d) + blocks[13] + 681279174;
+			    a = (a << 4 | a >>> 28) + b << 0;
+			    d += (bc ^ a) + blocks[0] - 358537222;
+			    d = (d << 11 | d >>> 21) + a << 0;
+			    da = d ^ a;
+			    c += (da ^ b) + blocks[3] - 722521979;
+			    c = (c << 16 | c >>> 16) + d << 0;
+			    b += (da ^ c) + blocks[6] + 76029189;
+			    b = (b << 23 | b >>> 9) + c << 0;
+			    bc = b ^ c;
+			    a += (bc ^ d) + blocks[9] - 640364487;
+			    a = (a << 4 | a >>> 28) + b << 0;
+			    d += (bc ^ a) + blocks[12] - 421815835;
+			    d = (d << 11 | d >>> 21) + a << 0;
+			    da = d ^ a;
+			    c += (da ^ b) + blocks[15] + 530742520;
+			    c = (c << 16 | c >>> 16) + d << 0;
+			    b += (da ^ c) + blocks[2] - 995338651;
+			    b = (b << 23 | b >>> 9) + c << 0;
+			    a += (c ^ (b | ~d)) + blocks[0] - 198630844;
+			    a = (a << 6 | a >>> 26) + b << 0;
+			    d += (b ^ (a | ~c)) + blocks[7] + 1126891415;
+			    d = (d << 10 | d >>> 22) + a << 0;
+			    c += (a ^ (d | ~b)) + blocks[14] - 1416354905;
+			    c = (c << 15 | c >>> 17) + d << 0;
+			    b += (d ^ (c | ~a)) + blocks[5] - 57434055;
+			    b = (b << 21 | b >>> 11) + c << 0;
+			    a += (c ^ (b | ~d)) + blocks[12] + 1700485571;
+			    a = (a << 6 | a >>> 26) + b << 0;
+			    d += (b ^ (a | ~c)) + blocks[3] - 1894986606;
+			    d = (d << 10 | d >>> 22) + a << 0;
+			    c += (a ^ (d | ~b)) + blocks[10] - 1051523;
+			    c = (c << 15 | c >>> 17) + d << 0;
+			    b += (d ^ (c | ~a)) + blocks[1] - 2054922799;
+			    b = (b << 21 | b >>> 11) + c << 0;
+			    a += (c ^ (b | ~d)) + blocks[8] + 1873313359;
+			    a = (a << 6 | a >>> 26) + b << 0;
+			    d += (b ^ (a | ~c)) + blocks[15] - 30611744;
+			    d = (d << 10 | d >>> 22) + a << 0;
+			    c += (a ^ (d | ~b)) + blocks[6] - 1560198380;
+			    c = (c << 15 | c >>> 17) + d << 0;
+			    b += (d ^ (c | ~a)) + blocks[13] + 1309151649;
+			    b = (b << 21 | b >>> 11) + c << 0;
+			    a += (c ^ (b | ~d)) + blocks[4] - 145523070;
+			    a = (a << 6 | a >>> 26) + b << 0;
+			    d += (b ^ (a | ~c)) + blocks[11] - 1120210379;
+			    d = (d << 10 | d >>> 22) + a << 0;
+			    c += (a ^ (d | ~b)) + blocks[2] + 718787259;
+			    c = (c << 15 | c >>> 17) + d << 0;
+			    b += (d ^ (c | ~a)) + blocks[9] - 343485551;
+			    b = (b << 21 | b >>> 11) + c << 0;
+
+			    if (this.first) {
+			      this.h0 = a + 1732584193 << 0;
+			      this.h1 = b - 271733879 << 0;
+			      this.h2 = c - 1732584194 << 0;
+			      this.h3 = d + 271733878 << 0;
+			      this.first = false;
+			    } else {
+			      this.h0 = this.h0 + a << 0;
+			      this.h1 = this.h1 + b << 0;
+			      this.h2 = this.h2 + c << 0;
+			      this.h3 = this.h3 + d << 0;
+			    }
+			  };
+
+			  /**
+			   * @method hex
+			   * @memberof Md5
+			   * @instance
+			   * @description Output hash as hex string
+			   * @returns {String} Hex string
+			   * @see {@link md5.hex}
+			   * @example
+			   * hash.hex();
+			   */
+			  Md5.prototype.hex = function () {
+			    this.finalize();
+
+			    var h0 = this.h0, h1 = this.h1, h2 = this.h2, h3 = this.h3;
+
+			    return HEX_CHARS[(h0 >>> 4) & 0x0F] + HEX_CHARS[h0 & 0x0F] +
+			      HEX_CHARS[(h0 >>> 12) & 0x0F] + HEX_CHARS[(h0 >>> 8) & 0x0F] +
+			      HEX_CHARS[(h0 >>> 20) & 0x0F] + HEX_CHARS[(h0 >>> 16) & 0x0F] +
+			      HEX_CHARS[(h0 >>> 28) & 0x0F] + HEX_CHARS[(h0 >>> 24) & 0x0F] +
+			      HEX_CHARS[(h1 >>> 4) & 0x0F] + HEX_CHARS[h1 & 0x0F] +
+			      HEX_CHARS[(h1 >>> 12) & 0x0F] + HEX_CHARS[(h1 >>> 8) & 0x0F] +
+			      HEX_CHARS[(h1 >>> 20) & 0x0F] + HEX_CHARS[(h1 >>> 16) & 0x0F] +
+			      HEX_CHARS[(h1 >>> 28) & 0x0F] + HEX_CHARS[(h1 >>> 24) & 0x0F] +
+			      HEX_CHARS[(h2 >>> 4) & 0x0F] + HEX_CHARS[h2 & 0x0F] +
+			      HEX_CHARS[(h2 >>> 12) & 0x0F] + HEX_CHARS[(h2 >>> 8) & 0x0F] +
+			      HEX_CHARS[(h2 >>> 20) & 0x0F] + HEX_CHARS[(h2 >>> 16) & 0x0F] +
+			      HEX_CHARS[(h2 >>> 28) & 0x0F] + HEX_CHARS[(h2 >>> 24) & 0x0F] +
+			      HEX_CHARS[(h3 >>> 4) & 0x0F] + HEX_CHARS[h3 & 0x0F] +
+			      HEX_CHARS[(h3 >>> 12) & 0x0F] + HEX_CHARS[(h3 >>> 8) & 0x0F] +
+			      HEX_CHARS[(h3 >>> 20) & 0x0F] + HEX_CHARS[(h3 >>> 16) & 0x0F] +
+			      HEX_CHARS[(h3 >>> 28) & 0x0F] + HEX_CHARS[(h3 >>> 24) & 0x0F];
+			  };
+
+			  /**
+			   * @method toString
+			   * @memberof Md5
+			   * @instance
+			   * @description Output hash as hex string
+			   * @returns {String} Hex string
+			   * @see {@link md5.hex}
+			   * @example
+			   * hash.toString();
+			   */
+			  Md5.prototype.toString = Md5.prototype.hex;
+
+			  /**
+			   * @method digest
+			   * @memberof Md5
+			   * @instance
+			   * @description Output hash as bytes array
+			   * @returns {Array} Bytes array
+			   * @see {@link md5.digest}
+			   * @example
+			   * hash.digest();
+			   */
+			  Md5.prototype.digest = function () {
+			    this.finalize();
+
+			    var h0 = this.h0, h1 = this.h1, h2 = this.h2, h3 = this.h3;
+			    return [
+			      h0 & 0xFF, (h0 >>> 8) & 0xFF, (h0 >>> 16) & 0xFF, (h0 >>> 24) & 0xFF,
+			      h1 & 0xFF, (h1 >>> 8) & 0xFF, (h1 >>> 16) & 0xFF, (h1 >>> 24) & 0xFF,
+			      h2 & 0xFF, (h2 >>> 8) & 0xFF, (h2 >>> 16) & 0xFF, (h2 >>> 24) & 0xFF,
+			      h3 & 0xFF, (h3 >>> 8) & 0xFF, (h3 >>> 16) & 0xFF, (h3 >>> 24) & 0xFF
+			    ];
+			  };
+
+			  /**
+			   * @method array
+			   * @memberof Md5
+			   * @instance
+			   * @description Output hash as bytes array
+			   * @returns {Array} Bytes array
+			   * @see {@link md5.array}
+			   * @example
+			   * hash.array();
+			   */
+			  Md5.prototype.array = Md5.prototype.digest;
+
+			  /**
+			   * @method arrayBuffer
+			   * @memberof Md5
+			   * @instance
+			   * @description Output hash as ArrayBuffer
+			   * @returns {ArrayBuffer} ArrayBuffer
+			   * @see {@link md5.arrayBuffer}
+			   * @example
+			   * hash.arrayBuffer();
+			   */
+			  Md5.prototype.arrayBuffer = function () {
+			    this.finalize();
+
+			    var buffer = new ArrayBuffer(16);
+			    var blocks = new Uint32Array(buffer);
+			    blocks[0] = this.h0;
+			    blocks[1] = this.h1;
+			    blocks[2] = this.h2;
+			    blocks[3] = this.h3;
+			    return buffer;
+			  };
+
+			  /**
+			   * @method buffer
+			   * @deprecated This maybe confuse with Buffer in node.js. Please use arrayBuffer instead.
+			   * @memberof Md5
+			   * @instance
+			   * @description Output hash as ArrayBuffer
+			   * @returns {ArrayBuffer} ArrayBuffer
+			   * @see {@link md5.buffer}
+			   * @example
+			   * hash.buffer();
+			   */
+			  Md5.prototype.buffer = Md5.prototype.arrayBuffer;
+
+			  /**
+			   * @method base64
+			   * @memberof Md5
+			   * @instance
+			   * @description Output hash as base64 string
+			   * @returns {String} base64 string
+			   * @see {@link md5.base64}
+			   * @example
+			   * hash.base64();
+			   */
+			  Md5.prototype.base64 = function () {
+			    var v1, v2, v3, base64Str = '', bytes = this.array();
+			    for (var i = 0; i < 15;) {
+			      v1 = bytes[i++];
+			      v2 = bytes[i++];
+			      v3 = bytes[i++];
+			      base64Str += BASE64_ENCODE_CHAR[v1 >>> 2] +
+			        BASE64_ENCODE_CHAR[(v1 << 4 | v2 >>> 4) & 63] +
+			        BASE64_ENCODE_CHAR[(v2 << 2 | v3 >>> 6) & 63] +
+			        BASE64_ENCODE_CHAR[v3 & 63];
+			    }
+			    v1 = bytes[i];
+			    base64Str += BASE64_ENCODE_CHAR[v1 >>> 2] +
+			      BASE64_ENCODE_CHAR[(v1 << 4) & 63] +
+			      '==';
+			    return base64Str;
+			  };
+
+			  /**
+			   * HmacMd5 class
+			   * @class HmacMd5
+			   * @extends Md5
+			   * @description This is internal class.
+			   * @see {@link md5.hmac.create}
+			   */
+			  function HmacMd5(key, sharedMemory) {
+			    var i, result = formatMessage(key);
+			    key = result[0];
+			    if (result[1]) {
+			      var bytes = [], length = key.length, index = 0, code;
+			      for (i = 0; i < length; ++i) {
+			        code = key.charCodeAt(i);
+			        if (code < 0x80) {
+			          bytes[index++] = code;
+			        } else if (code < 0x800) {
+			          bytes[index++] = (0xc0 | (code >>> 6));
+			          bytes[index++] = (0x80 | (code & 0x3f));
+			        } else if (code < 0xd800 || code >= 0xe000) {
+			          bytes[index++] = (0xe0 | (code >>> 12));
+			          bytes[index++] = (0x80 | ((code >>> 6) & 0x3f));
+			          bytes[index++] = (0x80 | (code & 0x3f));
+			        } else {
+			          code = 0x10000 + (((code & 0x3ff) << 10) | (key.charCodeAt(++i) & 0x3ff));
+			          bytes[index++] = (0xf0 | (code >>> 18));
+			          bytes[index++] = (0x80 | ((code >>> 12) & 0x3f));
+			          bytes[index++] = (0x80 | ((code >>> 6) & 0x3f));
+			          bytes[index++] = (0x80 | (code & 0x3f));
+			        }
+			      }
+			      key = bytes;
+			    }
+
+			    if (key.length > 64) {
+			      key = (new Md5(true)).update(key).array();
+			    }
+
+			    var oKeyPad = [], iKeyPad = [];
+			    for (i = 0; i < 64; ++i) {
+			      var b = key[i] || 0;
+			      oKeyPad[i] = 0x5c ^ b;
+			      iKeyPad[i] = 0x36 ^ b;
+			    }
+
+			    Md5.call(this, sharedMemory);
+
+			    this.update(iKeyPad);
+			    this.oKeyPad = oKeyPad;
+			    this.inner = true;
+			    this.sharedMemory = sharedMemory;
+			  }
+			  HmacMd5.prototype = new Md5();
+
+			  HmacMd5.prototype.finalize = function () {
+			    Md5.prototype.finalize.call(this);
+			    if (this.inner) {
+			      this.inner = false;
+			      var innerHash = this.array();
+			      Md5.call(this, this.sharedMemory);
+			      this.update(this.oKeyPad);
+			      this.update(innerHash);
+			      Md5.prototype.finalize.call(this);
+			    }
+			  };
+
+			  var exports = createMethod();
+			  exports.md5 = exports;
+			  exports.md5.hmac = createHmacMethod();
+
+			  if (COMMON_JS) {
+			    module.exports = exports;
+			  } else {
+			    /**
+			     * @method md5
+			     * @description Md5 hash function, export to global in browsers.
+			     * @param {String|Array|Uint8Array|ArrayBuffer} message message to hash
+			     * @returns {String} md5 hashes
+			     * @example
+			     * md5(''); // d41d8cd98f00b204e9800998ecf8427e
+			     * md5('The quick brown fox jumps over the lazy dog'); // 9e107d9d372bb6826bd81d3542a419d6
+			     * md5('The quick brown fox jumps over the lazy dog.'); // e4d909c290d0fb1ca068ffaddf22cbd0
+			     *
+			     * // It also supports UTF-8 encoding
+			     * md5('中文'); // a7bac2239fcdcb3a067903d8077c4a07
+			     *
+			     * // It also supports byte `Array`, `Uint8Array`, `ArrayBuffer`
+			     * md5([]); // d41d8cd98f00b204e9800998ecf8427e
+			     * md5(new Uint8Array([])); // d41d8cd98f00b204e9800998ecf8427e
+			     */
+			    root.md5 = exports;
+			  }
+			})(); 
+		} (md5));
+		return md5.exports;
+	}
+
+	var md5Exports = requireMd5();
+
+	const version = "2.1.0";
+
+	const bhpx = window.bhpx;
+	const queue = bhpx.queue || [];
+	let _pixelId = "";
+	const APIARY_ENDPOINT = "https://ingestion.prod.apiarydata.net/api/v2/ingestion/pixel";
+	const EXCLUDED_DOMAINS = ["beehiiv.com", "staginghiiv.com", "localhiiv.com"];
+	const CONFIG = {
+	  RETRY_ATTEMPTS: 3,
+	  RETRY_DELAY: 1e3,
+	  REQUEST_TIMEOUT: 5e3,
+	  RATE_LIMIT_INTERVAL: 0,
+	  BATCH_SIZE: 1,
+	  BATCH_INTERVAL: 1e3,
+	  DEDUPE_TIME_PERIOD: 15 * 60
+	  // 15 minutes in seconds
+	};
+	const rateLimiter = {
+	  lastEvent: 0,
+	  minInterval: CONFIG.RATE_LIMIT_INTERVAL,
+	  canTrack() {
+	    const now = Date.now();
+	    if (now - this.lastEvent >= this.minInterval) {
+	      this.lastEvent = now;
+	      return true;
+	    }
+	    return false;
+	  }
+	};
+	const eventQueue = [];
+	let batchTimeout = null;
+	function isCrawler() {
+	  const ua = navigator.userAgent.toLowerCase();
+	  const crawlerRegex = /(bot|crawl|spider|slurp|archiver|indexer|facebookexternalhit|twitterbot|bingpreview|applebot|siteaudit|semrush|ahrefs|mj12bot|seznambot|screaming frog|dotbot)/i;
+	  return crawlerRegex.test(ua);
+	}
+	function generateUUID() {
+	  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+	    const r = Math.random() * 16 | 0;
+	    const v = c === "x" ? r : r & 3 | 8;
+	    return v.toString(16);
+	  });
+	}
+	function getHostDomain() {
+	  const { hostname } = window.location;
+	  if (hostname === "localhost" || hostname === "127.0.0.1") return { host: "", domain: "localhost" };
+	  let host = "www";
+	  let domain = "";
+	  const parts = hostname.split(".");
+	  if (parts.length < 3) {
+	    domain = `${parts[0]}.${parts[1]}`;
+	  } else {
+	    host = parts[0];
+	    domain = `${parts[1]}.${parts[2]}`;
+	  }
+	  return { host, domain };
+	}
+	async function sendToServer(payload, retryAttempt = 0) {
+	  if (!rateLimiter.canTrack()) {
+	    console.warn("Rate limit exceeded, skipping event");
+	    return;
+	  }
+	  const controller = new AbortController();
+	  const timeoutId = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT);
+	  try {
+	    navigator.sendBeacon(APIARY_ENDPOINT, JSON.stringify(payload));
+	  } catch (error) {
+	    if (error instanceof Error && error.name === "AbortError") {
+	      console.error("Request timed out");
+	    }
+	    if (retryAttempt < CONFIG.RETRY_ATTEMPTS) {
+	      await new Promise((resolve) => setTimeout(resolve, CONFIG.RETRY_DELAY * (retryAttempt + 1)));
+	      return sendToServer(payload, retryAttempt + 1);
+	    }
+	    throw error;
+	  } finally {
+	    clearTimeout(timeoutId);
+	  }
+	}
+	function validatePixelId(pixelId) {
+	  if (!pixelId || typeof pixelId !== "string") {
+	    throw new Error("Invalid pixel ID");
+	  }
+	  const pixelIdRegex = /^[a-zA-Z0-9-_]{8,}$/;
+	  if (!pixelIdRegex.test(pixelId)) {
+	    throw new Error("Invalid pixel ID format");
+	  }
+	  return true;
+	}
+	async function track(eventName, options = {}) {
+	  try {
+	    if (isCrawler()) {
+	      return;
+	    }
+	    if (!_pixelId) {
+	      throw new Error("Pixel ID not initialized");
+	    }
+	    if (!eventName || typeof eventName !== "string") {
+	      throw new Error("Invalid event name");
+	    }
+	    eventName = eventName.toLowerCase();
+	    const event_id = generateUUID();
+	    const timestamp = Date.now();
+	    const { host, domain } = getHostDomain();
+	    const bhc = getCookie("_bhc", host, domain) || "";
+	    const bhp = getCookie("_bhp", host, domain) || "";
+	    const [ad_network_placement_id, subscriber_id, email_address_id] = bhc.split("_");
+	    const data = options.data || {};
+	    const {
+	      content_category,
+	      content_ids,
+	      content_name,
+	      content_type,
+	      currency,
+	      num_items,
+	      predicted_ltv_cents,
+	      search_string,
+	      status,
+	      value_cents,
+	      order_id
+	    } = data;
+	    let email = data.email || "";
+	    try {
+	      const url = new URL(window.top?.location.href || window.location.href);
+	      if (!email && url.searchParams.has("email")) {
+	        email = url.searchParams.get("email") || "";
+	      }
+	    } catch {
+	    }
+	    const debug = window.bhpx?.debug;
+	    if (debug && typeof debug === "object" && "log" in debug) {
+	      debug.log(`track: ${eventName} ${JSON.stringify(data)}`);
+	    }
+	    const { email_hash_sha256, email_hash_sha1, email_hash_md5 } = await hashEmail(email);
+	    const payload = {
+	      pixel_id: _pixelId,
+	      ad_network_placement_id: ad_network_placement_id || "",
+	      subscriber_id: subscriber_id || "",
+	      profile_id: bhp,
+	      // anonymous profile id
+	      event: eventName,
+	      timestamp,
+	      landed_timestamp: timestamp,
+	      sent_timestamp: timestamp,
+	      event_id,
+	      url: window.location.href,
+	      user_agent: window.navigator.userAgent,
+	      script_version: version,
+	      // custom data properties are optional
+	      content_category,
+	      content_ids,
+	      content_name,
+	      content_type,
+	      currency,
+	      num_items,
+	      predicted_ltv_cents: getInt(predicted_ltv_cents),
+	      search_string,
+	      status,
+	      value_cents: getInt(value_cents),
+	      email_hash_sha256,
+	      email_hash_sha1,
+	      email_hash_md5,
+	      order_id,
+	      email_address_id
+	    };
+	    eventQueue.push(payload);
+	    if (!batchTimeout && eventQueue.length < CONFIG.BATCH_SIZE) {
+	      batchTimeout = setTimeout(processBatch, CONFIG.BATCH_INTERVAL);
+	    } else if (eventQueue.length >= CONFIG.BATCH_SIZE) {
+	      await processBatch();
+	    }
+	  } catch (error) {
+	    console.error("Tracking failed:", error);
+	    if (window.bhpx.debug) {
+	      console.error("Debug details:", { eventName, options });
+	    }
+	  }
+	}
+	async function processBatch() {
+	  if (eventQueue.length === 0) return;
+	  const batch = dedupe(eventQueue.splice(0, CONFIG.BATCH_SIZE));
+	  if (batch.length === 0) return;
+	  batchTimeout = null;
+	  try {
+	    sendToServer(batch);
+	  } catch (error) {
+	    console.error("Failed to process batch:", error);
+	    eventQueue.unshift(...batch);
+	  }
+	}
+	function dedupe(events) {
+	  const STORAGE_KEY = "bhpx_processed_events";
+	  const currentTime = Math.floor(Date.now() / 1e3);
+	  let processedEvents = {};
+	  try {
+	    const stored = localStorage.getItem(STORAGE_KEY);
+	    if (stored) {
+	      processedEvents = JSON.parse(stored);
+	    }
+	  } catch (error) {
+	    console.warn("Failed to load processed events from localStorage:", error);
+	    processedEvents = {};
+	  }
+	  const seen = /* @__PURE__ */ new Set();
+	  const filteredEvents = events.filter((event) => {
+	    const { timestamp, landed_timestamp, sent_timestamp, event_id, ...rest } = event;
+	    const eventJson = JSON.stringify(rest);
+	    const eventHash = md5Exports.md5(eventJson);
+	    if (seen.has(eventHash)) {
+	      const debug = window?.bhpx?.debug;
+	      if (debug && typeof debug === "object" && "log" in debug) {
+	        debug.log(`Event ${event_id} ${event.event} is a duplicate in the current batch and will be skipped.`);
+	      }
+	      return false;
+	    }
+	    if (processedEvents[eventHash]) {
+	      const processedAt = processedEvents[eventHash];
+	      const timeDiff = currentTime - processedAt;
+	      if (timeDiff < CONFIG.DEDUPE_TIME_PERIOD) {
+	        const debug = window?.bhpx?.debug;
+	        if (debug && typeof debug === "object" && "log" in debug) {
+	          debug.log(
+	            `Event ${event_id} ${rest.event} is a duplicate since ${timeDiff} seconds ago and will be skipped.`
+	          );
+	        }
+	        return false;
+	      }
+	    }
+	    seen.add(eventHash);
+	    return true;
+	  });
+	  const updatedProcessedEvents = { ...processedEvents };
+	  filteredEvents.forEach((event) => {
+	    const { timestamp, landed_timestamp, sent_timestamp, event_id, ...rest } = event;
+	    const eventJson = JSON.stringify(rest);
+	    const eventHash = md5Exports.md5(eventJson);
+	    updatedProcessedEvents[eventHash] = currentTime;
+	  });
+	  Object.keys(updatedProcessedEvents).forEach((hash) => {
+	    if (updatedProcessedEvents[hash] < currentTime - CONFIG.DEDUPE_TIME_PERIOD) {
+	      delete updatedProcessedEvents[hash];
+	    }
+	  });
+	  try {
+	    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProcessedEvents));
+	  } catch (error) {
+	    console.warn("Failed to save processed events to localStorage:", error);
+	  }
+	  return filteredEvents;
+	}
+	function handleClickIdentification() {
+	  try {
+	    const urlParams = new URLSearchParams(window.location.search);
+	    const bhclId = urlParams.get("bhcl_id");
+	    if (!bhclId) return;
+	    const bhclIdRegex = /^[a-zA-Z0-9-_]{8,}$/;
+	    if (!bhclIdRegex.test(bhclId)) {
+	      console.error("Invalid bhcl_id format");
+	      return;
+	    }
+	    const { host, domain } = getHostDomain();
+	    const bhc = getCookie("_bhc", host, domain) || "";
+	    if (bhc === bhclId) {
+	      return;
+	    }
+	    updateBHCCookie("_bhc", bhclId, host, domain);
+	  } catch (error) {
+	    console.error("Error in click identification:", error);
+	  }
+	}
+	function init(pixelId, options = {}) {
+	  try {
+	    validatePixelId(pixelId);
+	    _pixelId = pixelId;
+	    console.log(`beehiiv pixel v${version} initialized`);
+	    const { host, domain } = getHostDomain();
+	    if (!getCookie("_bhp", host, domain)) {
+	      updateCookie("_bhp", generateUUID(), domain);
+	    }
+	    handleClickIdentification();
+	    const defaultConfig = {
+	      autoConfig: true,
+	      debug: false,
+	      trackClientNavigation: true,
+	      batchSize: CONFIG.BATCH_SIZE,
+	      batchInterval: CONFIG.BATCH_INTERVAL,
+	      retryAttempts: CONFIG.RETRY_ATTEMPTS
+	    };
+	    const config = { ...defaultConfig, ...options };
+	    Object.assign(CONFIG, {
+	      BATCH_SIZE: config.batchSize,
+	      BATCH_INTERVAL: config.batchInterval,
+	      RETRY_ATTEMPTS: config.retryAttempts
+	    });
+	    if (config.trackClientNavigation) {
+	      monitorUrlChanges(() => track("pageview"));
+	    }
+	    if (config.debug) {
+	      enableDebugMode();
+	    }
+	  } catch (error) {
+	    console.error("Initialization failed:", error);
+	  }
+	}
+	bhpx.callMethod = (...rest) => {
+	  const args = Array.prototype.slice.call(rest);
+	  const method = args[0];
+	  const params = args.slice(1);
+	  switch (method) {
+	    case "init": {
+	      init(params[0], params[1]);
+	      break;
+	    }
+	    case "track": {
+	      const trackFn = window.bhp?.track || track;
+	      trackFn(params[0], params[1]);
+	      break;
+	    }
+	    default: {
+	      console.error(`Unknown method: ${method}`);
+	    }
+	  }
+	};
+	while (queue.length > 0) {
+	  const cmd = queue.shift();
+	  if (cmd) {
+	    bhpx.callMethod.apply(null, cmd);
+	  }
+	}
+	function monitorUrlChanges(onUrlChange) {
+	  const originalPushState = history.pushState;
+	  const originalReplaceState = history.replaceState;
+	  function triggerUrlChangeEvent() {
+	    const event = new Event("bhpx:urlchange");
+	    window.dispatchEvent(event);
+	  }
+	  history.pushState = function(...args) {
+	    originalPushState.apply(this, args);
+	    triggerUrlChangeEvent();
+	  };
+	  history.replaceState = function(...args) {
+	    originalReplaceState.apply(this, args);
+	    triggerUrlChangeEvent();
+	  };
+	  window.addEventListener("popstate", () => {
+	    triggerUrlChangeEvent();
+	  });
+	  window.addEventListener("bhpx:urlchange", onUrlChange);
+	}
+	function enableDebugMode() {
+	  window.bhpx.debug = true;
+	  const debugStyles = {
+	    group: "color: #4a90e2; font-weight: bold; font-size: 12px;",
+	    event: "color: #2ecc71; font-weight: bold;",
+	    params: "color: #9b59b6;"};
+	  const debugOverlay = document.createElement("div");
+	  debugOverlay.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        font-family: monospace;
+        font-size: 12px;
+        z-index: 9999;
+        max-height: 300px;
+        overflow-y: auto;
+        max-width: 400px;
+      `;
+	  document.body.appendChild(debugOverlay);
+	  function logToOverlay(message) {
+	    console.log("logging to overlay", message);
+	    const entry = document.createElement("div");
+	    entry.style.borderBottom = "1px solid rgba(255, 255, 255, 0.1)";
+	    entry.style.padding = "5px 0";
+	    entry.textContent = `${(/* @__PURE__ */ new Date()).toISOString().slice(11, -1)} - ${message}`;
+	    debugOverlay.insertBefore(entry, debugOverlay.firstChild);
+	    if (debugOverlay.children.length > 50) {
+	      debugOverlay.removeChild(debugOverlay.lastChild);
+	    }
+	  }
+	  const originalTrack = window.bhpx.track || track;
+	  window.bhpx.track = async function(eventName, params = {}) {
+	    console.group("%cBeehiiv Pixel Debug", debugStyles.group);
+	    console.log(`%cEvent: ${eventName.toLowerCase()}`, debugStyles.event);
+	    console.log("%cParameters:", debugStyles.params, params);
+	    console.log("%cRouting Info:", debugStyles.params, {
+	      pathname: window.location.pathname,
+	      search: window.location.search,
+	      hash: window.location.hash,
+	      title: document.title,
+	      referrer: document.referrer
+	    });
+	    console.groupEnd();
+	    logToOverlay(`${eventName} tracked - ${JSON.stringify(params)}`);
+	    const startTime = performance.now();
+	    await originalTrack.apply(this, [eventName, params]);
+	    const endTime = performance.now();
+	    console.log(`%cTracking Performance: ${Math.round(endTime - startTime)}ms`, debugStyles.params);
+	  };
+	  const debugHistory = (type, args) => {
+	    console.group("%cHistory API Debug", debugStyles.group);
+	    console.log(`%c${type} called:`, debugStyles.event, {
+	      state: args[0],
+	      title: args[1],
+	      url: args[2]
+	    });
+	    console.groupEnd();
+	    logToOverlay(`History ${type}: ${args[2]}`);
+	  };
+	  const originalPushState = history.pushState;
+	  const originalReplaceState = history.replaceState;
+	  history.pushState = function(...args) {
+	    debugHistory("pushState", args);
+	    return originalPushState.apply(this, args);
+	  };
+	  history.replaceState = function(...args) {
+	    debugHistory("replaceState", args);
+	    return originalReplaceState.apply(this, args);
+	  };
+	  window.bhpx.debug = {
+	    overlay: debugOverlay,
+	    clearLogs: () => {
+	      debugOverlay.innerHTML = "";
+	    },
+	    toggleOverlay: () => {
+	      debugOverlay.style.display = debugOverlay.style.display === "none" ? "block" : "none";
+	    },
+	    getEventHistory: () => {
+	      return Array.from(debugOverlay.children).map((child) => child.textContent || "");
+	    },
+	    log: logToOverlay
+	  };
+	  console.log("%cBeehiiv Pixel Debug Mode Enabled", "color: #4a90e2; font-size: 14px; font-weight: bold;");
+	  console.log("Debug utilities available via window.bhpx.debug", window.bhpx.debug);
+	}
+	function getInt(s) {
+	  if (typeof s === "number") return s;
+	  if (typeof s === "string") return Number.parseInt(s, 10);
+	  return void 0;
+	}
+	function findCookieWithHost(name, host, domain) {
+	  const allCookies = document.cookie.split(";");
+	  let cookie;
+	  const isExcludedDomain = EXCLUDED_DOMAINS.includes(domain);
+	  if (!isExcludedDomain) {
+	    cookie = findCookie(allCookies, name);
+	  }
+	  if (!cookie) {
+	    name = `${name}_${host}`;
+	    cookie = findCookie(allCookies, name);
+	  }
+	  if (!cookie && host !== "www") {
+	    name = `${name}_www`;
+	    cookie = findCookie(allCookies, name);
+	  }
+	  return [cookie, name];
+	}
+	function getCookieValue(cookie) {
+	  return cookie ? cookie.split("=")[1] : "";
+	}
+	function getCookie(name, host, domain) {
+	  const [cookie] = findCookieWithHost(name, host, domain);
+	  if (cookie) {
+	    return getCookieValue(cookie);
+	  }
+	  return "";
+	}
+	function updateBHCCookie(name, value, host, domain) {
+	  const isExcludedDomain = EXCLUDED_DOMAINS.includes(domain);
+	  if (isExcludedDomain) {
+	    name = `${name}_${host}`;
+	  }
+	  updateCookie(name, value, domain);
+	  console.log(`bhcl_id added to cookie: ${name}`);
+	}
+	function updateCookie(name, value, domain) {
+	  const expires = 365 * 24 * 60 * 60;
+	  const cookieProps = `domain=.${domain}; path=/; samesite=strict; ${"secure;" } max-age=${expires}`;
+	  document.cookie = `${name}=${value}; ${cookieProps}`;
+	}
+	function findCookie(allCookies, name) {
+	  return allCookies.find((cookie) => cookie.trim().startsWith(`${name}=`));
+	}
+	async function hashEmail(email) {
+	  if (!email) {
+	    return { email_hash_sha256: "", email_hash_sha1: "", email_hash_md5: "" };
+	  }
+	  return await promiseAllObject({
+	    email_hash_sha256: generateHash(email, "SHA-256"),
+	    email_hash_sha1: generateHash(email, "SHA-1"),
+	    email_hash_md5: Promise.resolve(md5Exports.md5(email))
+	  });
+	}
+	async function generateHash(input, algorithm) {
+	  const msgBuffer = new TextEncoder().encode(input);
+	  const hashBuffer = await crypto.subtle.digest(algorithm, msgBuffer);
+	  const hashArray = Array.from(new Uint8Array(hashBuffer));
+	  return hashArray.map((byte) => byte.toString(16).padStart(2, "0")).join("");
+	}
+	async function promiseAllObject(promisesObj) {
+	  const keys = Object.keys(promisesObj);
+	  const promises = Object.values(promisesObj);
+	  const results = await Promise.all(promises);
+	  return keys.reduce(
+	    (obj, key, index) => {
+	      obj[key] = results[index];
+	      return obj;
+	    },
+	    {}
+	  );
+	}
+
+	exports.CONFIG = CONFIG;
+	exports.generateUUID = generateUUID;
+	exports.getCookie = getCookie;
+	exports.getHostDomain = getHostDomain;
+	exports.init = init;
+	exports.track = track;
+	exports.validatePixelId = validatePixelId;
+
+	Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+
+	return exports;
+
+})({});
