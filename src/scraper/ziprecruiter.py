@@ -98,7 +98,11 @@ class ZipRecruiterScraper(BaseScraper):
                     link_el = card.locator("a.job_link, a").first
                     link = await link_el.get_attribute("href")
                     
-                    full_link = link 
+                    # Ensure full URL
+                    if link and not link.startswith("http"):
+                        full_link = f"https://www.ziprecruiter.com{link}"
+                    else:
+                        full_link = link
                     
                     jobs.append({
                         "title": title.strip(),

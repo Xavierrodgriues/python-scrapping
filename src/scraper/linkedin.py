@@ -39,13 +39,14 @@ class LinkedinScraper(BaseScraper):
                     
                     url_el = card.locator("a.base-card__full-link").first
                     link = await url_el.get_attribute("href")
+                    full_link = f"https://www.linkedin.com{link}" if link and not link.startswith("http") else link
                     
                     if title != "Unknown Title":
                         jobs.append({
                             "title": title.strip(),
                             "company": company.strip(),
                             "location": loc.strip(),
-                            "url": link,
+                            "url": full_link,
                             "source": "LinkedIn"
                         })
                         logger.debug(f"Extracted: {title.strip()} at {company.strip()}")
