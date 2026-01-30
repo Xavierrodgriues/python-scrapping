@@ -7,3 +7,4 @@ beautifulsoup4
 playwright-stealth
 pymongo
 python-dotenv
+schedule
