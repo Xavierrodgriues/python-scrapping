@@ -8,8 +8,6 @@ from src.storage.mongo import MongoWriter
 from src.scraper.indeed import IndeedScraper
 from src.scraper.linkedin import LinkedinScraper
 from src.scraper.glassdoor import GlassdoorScraper
-from src.scraper.monster import MonsterScraper
-from src.scraper.google_jobs import GoogleJobsScraper
 
 import argparse
 
@@ -162,5 +160,7 @@ async def run():
     else:
         logger.warning("No jobs found across all sources.")
 
+if __name__ == "__main__":
+    asyncio.run(run())
 if __name__ == "__main__":
     asyncio.run(run())
