@@ -47,6 +47,7 @@ class SkipTheDriveScraper(BaseScraper):
                     # Save to MongoDB after each page
                     if mongo_writer:
                         mongo_writer.upsert_jobs(jobs)
+                        mongo_writer.save_job_links(jobs, role=role)
                         logger.success(f"Saved {len(jobs)} jobs from page {current_page} to MongoDB")
                     
                     all_jobs.extend(jobs)

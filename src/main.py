@@ -30,6 +30,8 @@ async def run_scraper(scraper, variation, location, mongo_writer, all_jobs, cat_
             for job in jobs:
                 job["category"] = cat_name
             mongo_writer.upsert_jobs(jobs)
+            # Also save to job_links collection with standardized format
+            mongo_writer.save_job_links(jobs, role=variation)
         
         all_jobs.extend(jobs)
         logger.success(f"Found {len(jobs)} jobs for {variation} in {location} on {scraper_name}")
