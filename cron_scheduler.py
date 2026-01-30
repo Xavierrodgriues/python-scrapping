@@ -32,8 +32,8 @@ def run_scraper():
         logger.error(f"Failed to run scraper: {e}")
 
 # Schedule jobs at 1:07 AM and 1:07 PM daily
-schedule.every().day.at("05:00").do(run_scraper)
-schedule.every().day.at("17:00").do(run_scraper)
+schedule.every().day.at("02:54").do(run_scraper)
+schedule.every().day.at("13:54").do(run_scraper)
 
 if __name__ == "__main__":
     logger.info("Cron scheduler started. Waiting for scheduled times (05:00 and 17:00)...")
