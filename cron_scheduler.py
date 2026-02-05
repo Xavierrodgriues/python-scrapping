@@ -14,25 +14,28 @@ def run_scraper():
     logger.info(f"Starting scheduled scrape at {datetime.now()}")
     
     try:
-        # Run the scraper using the same command you use manually
+        import os
+        # Set PYTHONPATH so the subprocess can find the src module
+        env = os.environ.copy()
+        env["PYTHONPATH"] = "."
+
+        # Run without capture_output=True so logs stream directly to the terminal
         result = subprocess.run(
             [sys.executable, "-m", "src.main"],
             cwd=".",
-            capture_output=True,
-            text=True
+            env=env
         )
         
         if result.returncode == 0:
             logger.success("Scraper completed successfully")
         else:
             logger.error(f"Scraper failed with exit code {result.returncode}")
-            logger.error(f"Stderr: {result.stderr}")
             
     except Exception as e:
         logger.error(f"Failed to run scraper: {e}")
 
 # Schedule jobs at 1:07 AM and 1:07 PM daily
-schedule.every().day.at("02:54").do(run_scraper)
+schedule.every().day.at("04:29").do(run_scraper)
 schedule.every().day.at("13:54").do(run_scraper)
 
 if __name__ == "__main__":
@@ -40,7 +43,7 @@ if __name__ == "__main__":
     logger.info("Press Ctrl+C to stop.")
     
     # Optionally run immediately on startup
-    # run_scraper()
+    run_scraper()
     
     while True:
         schedule.run_pending()
