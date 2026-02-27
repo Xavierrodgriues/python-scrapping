@@ -7,9 +7,14 @@ class PowerToFlyScraper(BaseScraper):
     async def search_jobs(self, role: str, location: str, **kwargs) -> List[Dict]:
         await self.initialize()
         
+        from datetime import datetime, timedelta
+        
+        days_old = kwargs.get("days_old", 1)
+        cutoff_date = (datetime.now() - timedelta(days=days_old)).strftime('%Y-%m-%d')
+        
         # PowerToFly Search URL
         # https://powertofly.com/jobs/?keywords=Python&location=Remote
-        url = f"https://powertofly.com/jobs/?keywords={role.replace(' ', '+')}"
+        url = f"https://powertofly.com/jobs/?keywords={role.replace(' ', '+')}&created__from={cutoff_date}"
         
         logger.info(f"Navigating to PowerToFly: {url}")
         

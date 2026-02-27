@@ -14,7 +14,7 @@ class WorkingNomadsScraper(BaseScraper):
         # Working Nomads URL format from screenshot
         # URL: workingnomads.com/jobs?tag=backend-developer&location=north-america
         tag = role.lower().replace(' ', '-')
-        url = f"https://www.workingnomads.com/jobs?tag={tag}&location=north-america"
+        url = f"https://www.workingnomads.com/jobs?tag={tag}&location=north-america&postedDate=1"
         
         logger.info(f"Navigating to Working Nomads: {url}")
         

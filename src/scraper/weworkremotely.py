@@ -13,7 +13,7 @@ class WeWorkRemotelyScraper(BaseScraper):
         category = kwargs.get("category", "")
         
         # WeWorkRemotely Search URL
-        base_url = f"https://weworkremotely.com/remote-jobs/search?term={role.replace(' ', '+')}"
+        base_url = f"https://weworkremotely.com/remote-jobs/search?term={role.replace(' ', '+')}&sort=Past+24+Hours"
         
         all_jobs = []
         current_page = 1

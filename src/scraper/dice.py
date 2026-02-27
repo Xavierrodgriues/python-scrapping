@@ -10,9 +10,11 @@ class DiceScraper(BaseScraper):
         
         max_pages = kwargs.get("max_pages", 10)
         
+        days_old = kwargs.get("days_old", 30)
+        
         # Dice Search URL with pagination
         # Dice uses ?page=1, ?page=2, etc.
-        base_url = f"https://www.dice.com/jobs?q={role.replace(' ', '+')}&location=United%20States"
+        base_url = f"https://www.dice.com/jobs?q={role.replace(' ', '+')}&location=United%20States&filters.postedDate={days_old}"
         
         all_jobs = []
         current_page = 1

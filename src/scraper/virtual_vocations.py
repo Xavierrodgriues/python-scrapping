@@ -12,11 +12,14 @@ class VirtualVocationsScraper(BaseScraper):
         mongo_writer = kwargs.get("mongo_writer")
         category = kwargs.get("category", "")
         
+        days_old = kwargs.get("days_old", 1)
+        hours_old = days_old * 24
+        
         # Virtual Vocations URL format from screenshot
-        # URL: virtualvocations.com/jobs/q-Backend+developer+in+usa/p-10
+        # URL: virtualvocations.com/jobs/q-Backend+developer+in+usa/d-24/p-10
         # p-10 = page 2, p-20 = page 3, p-30 = page 4 (offset by 10)
         search_term = role.replace(' ', '+') + "+in+usa"
-        base_url = f"https://www.virtualvocations.com/jobs/q-{search_term}"
+        base_url = f"https://www.virtualvocations.com/jobs/q-{search_term}/d-{hours_old}"
         
         all_jobs = []
         current_page = 1

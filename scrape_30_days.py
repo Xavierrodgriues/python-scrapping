@@ -2,25 +2,23 @@ import asyncio
 import yaml
 from loguru import logger
 from src.core.browser import BrowserManager
-from src.core.utils import setup_logging, get_role_variations
+from src.core.utils import setup_logging
 from src.storage.writer import JobWriter
 from src.storage.mongo import MongoWriter
-from src.scraper.indeed import IndeedScraper
-from src.scraper.linkedin import LinkedinScraper
-from src.scraper.glassdoor import GlassdoorScraper
 
 import argparse
 
 async def run_scraper(scraper, variation, location, mongo_writer, all_jobs, cat_name):
-    """Worker function to run a single scraper."""
+    """Worker function to run a single scraper with a 30-day filter."""
     scraper_name = scraper.__class__.__name__
-    logger.info(f"Starting {scraper_name} for {variation}...")
+    logger.info(f"Starting {scraper_name} for {variation} (30-day filter)...")
     try:
         # Pass mongo_writer and category so scraper can save incrementally
+        # HARDCODED: days_old=30
         jobs = await scraper.search_jobs(
             variation, location, 
-            days_old=1, 
-            max_pages=10,
+            days_old=30, 
+            max_pages=15, # Increased max_pages slightly to accommodate more history
             mongo_writer=mongo_writer,
             category=cat_name
         )
@@ -47,7 +45,7 @@ async def run_scraper(scraper, variation, location, mongo_writer, all_jobs, cat_
                 pass
 
 async def run():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Run scrapers with a 30-day time filter")
     parser.add_argument("--config", default="config/search_config.yaml", help="Path to configuration file")
     parser.add_argument("--scrapers", default=None, help="Comma-separated list of scrapers to run (e.g., 'IndeedScraper,RemoteOKScraper')")
     args = parser.parse_args()
@@ -111,7 +109,7 @@ async def run():
             cat_name = category.get("name")
             roles = category.get("roles", [])
             
-            logger.info(f"Processing Category: {cat_name}")
+            logger.info(f"Processing Category: {cat_name} (30 DAYS)")
             
             for role in roles:
                 # PARALLEL EXECUTION STRATEGY:
@@ -126,14 +124,14 @@ async def run():
                     async with semaphore:
                         # Instantiate fresh scraper
                         scraper_instance = cls(browser_manager)
-                        # Wrap in hard timeout of 120s per scraper
+                        # Wrap in hard timeout of 180s per scraper (longer for 30 days)
                         try:
                             await asyncio.wait_for(
                                 run_scraper(scraper_instance, variation, location, mongo_writer, all_jobs, cat_name),
-                                timeout=120.0
+                                timeout=180.0
                             )
                         except asyncio.TimeoutError:
-                            logger.error(f"Scraper {cls.__name__} timed out after 120s.")
+                            logger.error(f"Scraper {cls.__name__} timed out after 180s.")
                             # Attempt clean close
                             if scraper_instance.page:
                                 try:
@@ -157,12 +155,10 @@ async def run():
         
     # Save cumulative results to local files
     if all_jobs:
-        logger.info(f"Total jobs found across all categories: {len(all_jobs)}")
+        logger.info(f"Total jobs found across all categories (30 days): {len(all_jobs)}")
         writer.save_jobs(all_jobs)
     else:
         logger.warning("No jobs found across all sources.")
 
-if __name__ == "__main__":
-    asyncio.run(run())
 if __name__ == "__main__":
     asyncio.run(run())

@@ -12,8 +12,10 @@ class SimplyHiredScraper(BaseScraper):
         mongo_writer = kwargs.get("mongo_writer")
         category = kwargs.get("category", "")
         
+        days_old = kwargs.get("days_old", 30)
+        
         # SimplyHired Search URL with proper format
-        base_url = f"https://www.simplyhired.com/search?q={role.replace(' ', '+')}&l=United+States"
+        base_url = f"https://www.simplyhired.com/search?q={role.replace(' ', '+')}&l=United+States&fdb={days_old}"
         
         all_jobs = []
         current_page = 1

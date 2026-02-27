@@ -10,9 +10,11 @@ class GlassdoorScraper(BaseScraper):
         
         max_pages = kwargs.get("max_pages", 10)
         
+        days_old = kwargs.get("days_old", 30)
+        
         # Glassdoor USA search URL with proper country filter
         encoded_role = role.replace(' ', '%20')
-        base_url = f"https://www.glassdoor.com/Job/jobs.htm?sc.keyword={encoded_role}&locT=N&locId=1&locKeyword=United%20States"
+        base_url = f"https://www.glassdoor.com/Job/jobs.htm?sc.keyword={encoded_role}&locT=N&locId=1&locKeyword=United%20States&fromAge={days_old}"
         
         all_jobs = []
         current_page = 1

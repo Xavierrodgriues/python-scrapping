@@ -12,7 +12,7 @@ class NexxtScraper(BaseScraper):
         if not location or location.lower() == "usa":
             location = "United States"
             
-        url = f"https://www.nexxt.com/jobs/search?soid=1&k={role.replace(' ', '+')}&l={location.replace(' ', '+')}"
+        url = f"https://www.nexxt.com/jobs/search?soid=1&k={role.replace(' ', '+')}&l={location.replace(' ', '+')}&dp=1"
         logger.info(f"Navigating to Nexxt: {url}")
         
         await self.navigate(url)
